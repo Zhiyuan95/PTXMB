@@ -12,7 +12,13 @@
   --ring: rgba(176, 140, 79, 0.35);
   --shadow: 0 22px 40px rgba(31, 24, 15, 0.12);
   --shadow-soft: 0 10px 30px rgba(31, 24, 15, 0.08);
+  --font-body: "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft Yahei", "WenQuanYi Micro Hei",
+    "Heiti SC", sans-serif;
+  --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC",
+    "STSong", "SimSun", serif;
 }
+
 
 @theme inline {
   --color-paper: var(--paper);

@@ -28,12 +28,15 @@ import {
 export default function ReviewPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [preferences, setPreferences] = useState<Preferences>(loadPreferences());
+  const [preferences, setPreferences] = useState<Preferences>(
+    loadPreferences()
+  );
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [showDedication, setShowDedication] = useState(false);
   const [draftDedication, setDraftDedication] = useState(
     preferences.dedicationText
   );
+  const [searchQuery, setSearchQuery] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,11 +67,20 @@ export default function ReviewPage() {
     [activeTemplates]
   );
 
+  const filteredTemplates = useMemo(() => {
+    const keyword = searchQuery.trim().toLowerCase();
+    if (!keyword) {
+      return activeTemplates;
+    }
+    return activeTemplates.filter((template) =>
+      template.name.toLowerCase().includes(keyword)
+    );
+  }, [activeTemplates, searchQuery]);
+
   const recordedCount = useMemo(
     () =>
       activeTemplates.filter(
-        (template) =>
-          sumEntriesForDate(entries, template.id, selectedDate) > 0
+        (template) => sumEntriesForDate(entries, template.id, selectedDate) > 0
       ).length,
     [activeTemplates, entries, selectedDate]
   );
@@ -186,13 +198,32 @@ export default function ReviewPage() {
             </div>
 
             <div className="mt-6 space-y-4">
-              {activeTemplates.length === 0 ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  className="w-full rounded-2xl border border-[color:var(--line)] bg-white/70 px-4 py-2 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]"
+                  placeholder="搜索功课名称"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
+                {searchQuery ? (
+                  <button
+                    className="rounded-full border border-[color:var(--line)] px-4 py-2 text-xs text-[color:var(--muted)] hover:text-[color:var(--ink)]"
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    清空
+                  </button>
+                ) : null}
+              </div>
+              {filteredTemplates.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-[color:var(--line)] bg-[color:var(--surface-strong)] p-6 text-sm text-[color:var(--muted)]">
-                  还没有功课模板。先去设置页建立功课资产。
+                  {activeTemplates.length === 0
+                    ? "还没有功课模板。先去设置页建立功课资产。"
+                    : "没有匹配到功课，请调整关键词。"}
                 </div>
               ) : (
                 <div className="space-y-4 stagger">
-                  {activeTemplates.map((template) => {
+                  {filteredTemplates.map((template) => {
                     const dayTotal = sumEntriesForDate(
                       entries,
                       template.id,
@@ -285,7 +316,7 @@ export default function ReviewPage() {
                 <p>比上周更进一步，保持平稳节奏即可</p>
               </div>
               <div className="mt-4 space-y-3">
-                {activeTemplates.map((template) => {
+                {filteredTemplates.map((template) => {
                   const weekTotal = sumEntriesForWeek(
                     entries,
                     template.id,
@@ -309,8 +340,8 @@ export default function ReviewPage() {
                         {delta > 0
                           ? `(+${delta})`
                           : delta < 0
-                            ? `(${delta})`
-                            : "(持平)"}
+                          ? `(${delta})`
+                          : "(持平)"}
                       </span>
                     </div>
                   );
