@@ -15,6 +15,7 @@ import {
   loadPreferences,
   loadTemplates,
   savePreferences,
+  saveTemplates,
   unitLabels,
   type Entry,
   type Preferences,
@@ -25,6 +26,8 @@ import {
   sumEntriesForWeek,
   totalWithInitial,
 } from "@/lib/records";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faList } from "@fortawesome/free-solid-svg-icons";
 
 export default function ReviewPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -39,6 +42,8 @@ export default function ReviewPage() {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
   useEffect(() => {
     setTemplates(loadTemplates());
@@ -112,6 +117,37 @@ export default function ReviewPage() {
     setPreferences(nextPrefs);
     setShowDedication(false);
     setNotice("回向已收录");
+  };
+
+  const handleReorder = (fromId: string, toId: string) => {
+    if (fromId === toId) {
+      return;
+    }
+    const activeTemplatesList = templates.filter(
+      (template) => template.isActive
+    );
+    const activeIds = activeTemplatesList.map((template) => template.id);
+    const fromIndex = activeIds.indexOf(fromId);
+    const toIndex = activeIds.indexOf(toId);
+    if (fromIndex < 0 || toIndex < 0) {
+      return;
+    }
+    const nextActiveIds = [...activeIds];
+    const [movedId] = nextActiveIds.splice(fromIndex, 1);
+    nextActiveIds.splice(toIndex, 0, movedId);
+    const activeById = new Map(
+      activeTemplatesList.map((template) => [template.id, template])
+    );
+    let activeIndex = 0;
+    const nextTemplates = templates.map((template) => {
+      if (!template.isActive) {
+        return template;
+      }
+      const nextId = nextActiveIds[activeIndex++];
+      return activeById.get(nextId) ?? template;
+    });
+    setTemplates(nextTemplates);
+    saveTemplates(nextTemplates);
   };
 
   return (
@@ -207,22 +243,65 @@ export default function ReviewPage() {
                       dailyTarget > 0
                         ? Math.min((dayTotal / dailyTarget) * 100, 100)
                         : 0;
+                    const isDragging = draggingId === template.id;
+                    const isDragOver = dragOverId === template.id;
                     return (
                       <div
-                        className="rounded-3xl border border-[color:var(--line)] bg-white/70 p-5 shadow-[var(--shadow-soft)]"
+                        className={`group rounded-3xl border border-[color:var(--line)] bg-white/70 p-5 shadow-[var(--shadow-soft)] transition ${
+                          isDragOver ? "ring-2 ring-[color:var(--ring)]" : ""
+                        } ${
+                          isDragging ? "opacity-60" : ""
+                        } cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-[color:var(--ring)]`}
                         key={template.id}
+                        draggable
+                        onDragStart={(event) => {
+                          setDraggingId(template.id);
+                          setDragOverId(null);
+                          event.dataTransfer.effectAllowed = "move";
+                          event.dataTransfer.setData("text/plain", template.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggingId(null);
+                          setDragOverId(null);
+                        }}
+                        onDragOver={(event) => {
+                          event.preventDefault();
+                          if (dragOverId !== template.id) {
+                            setDragOverId(template.id);
+                          }
+                          event.dataTransfer.dropEffect = "move";
+                        }}
+                        onDragLeave={() => {
+                          if (dragOverId === template.id) {
+                            setDragOverId(null);
+                          }
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          const fromId =
+                            draggingId ??
+                            event.dataTransfer.getData("text/plain");
+                          setDraggingId(null);
+                          setDragOverId(null);
+                          if (fromId) {
+                            handleReorder(fromId, template.id);
+                          }
+                        }}
                       >
                         <div className="flex items-center justify-between gap-4">
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
-                              {template.name}
-                            </p>
-                            <p className="mt-2 text-2xl font-semibold text-[color:var(--ink)]">
-                              {dayTotal}
-                              <span className="ml-1 text-sm text-[color:var(--muted)]">
-                                {unitLabels[template.unit]}
-                              </span>
-                            </p>
+                          <div className="flex items-center gap-4">
+                            <FontAwesomeIcon icon={faList} />
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                                {template.name}
+                              </p>
+                              <p className="mt-2 text-2xl font-semibold text-[color:var(--ink)]">
+                                {dayTotal}
+                                <span className="ml-1 text-sm text-[color:var(--muted)]">
+                                  {unitLabels[template.unit]}
+                                </span>
+                              </p>
+                            </div>
                           </div>
                           <div className="text-right text-xs text-[color:var(--muted)]">
                             <p>
