@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import PageHeader from "../components/page-header";
 import {
   addDays,
   formatShortDate,
@@ -116,39 +117,11 @@ export default function ReviewPage() {
   return (
     <div className="min-h-screen">
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
-        <header className="flex flex-wrap items-center justify-between gap-6">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
-              Daily Review
-            </p>
-            <h1 className="text-3xl font-semibold text-[color:var(--ink)] md:text-4xl font-serif">
-              复盘
-            </h1>
-            <p className="text-sm text-[color:var(--muted)]">
-              看见积累，让每次用功都有回响。
-            </p>
-          </div>
-          <nav className="flex flex-wrap items-center gap-2 text-sm font-medium">
-            <Link
-              className="rounded-full border border-transparent px-4 py-2 text-[color:var(--muted)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
-              href="/"
-            >
-              记录
-            </Link>
-            <Link
-              className="rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-2 text-[color:var(--ink)] shadow-[var(--shadow-soft)]"
-              href="/review"
-            >
-              复盘
-            </Link>
-            <Link
-              className="rounded-full border border-transparent px-4 py-2 text-[color:var(--muted)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
-              href="/settings"
-            >
-              设置
-            </Link>
-          </nav>
-        </header>
+        <PageHeader
+          eyebrow="Daily Review"
+          title="复盘"
+          description="看见积累，让每次用功都有回响。"
+        />
 
         {notice ? (
           <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--ink)] shadow-[var(--shadow-soft)] animate-fade-in">

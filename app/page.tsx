@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import PageHeader from "./components/page-header";
 import { addDays, formatShortDate, todayISO } from "@/lib/dates";
 import {
   createId,
@@ -46,8 +47,7 @@ export default function Home() {
   const recordedCount = useMemo(
     () =>
       activeTemplates.filter(
-        (template) =>
-          sumEntriesForDate(entries, template.id, selectedDate) > 0
+        (template) => sumEntriesForDate(entries, template.id, selectedDate) > 0
       ).length,
     [activeTemplates, entries, selectedDate]
   );
@@ -80,7 +80,9 @@ export default function Home() {
     setEntries(nextEntries);
     saveEntries(nextEntries);
     setNotice(
-      `${activeTemplate.name} 已记录 ${amount}${unitLabels[activeTemplate.unit]}`
+      `${activeTemplate.name} 已记录 ${amount}${
+        unitLabels[activeTemplate.unit]
+      }`
     );
     setAmountInput("");
     setError(null);
@@ -95,39 +97,11 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
-        <header className="flex flex-wrap items-center justify-between gap-6">
-          <div className="space-y-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
-              System of Record
-            </p>
-            <h1 className="text-3xl font-semibold text-[color:var(--ink)] md:text-4xl font-serif">
-              修行记录
-            </h1>
-            <p className="text-sm text-[color:var(--muted)]">
-              极简记录，温和复盘。先证明你愿意记录。
-            </p>
-          </div>
-          <nav className="flex flex-wrap items-center gap-2 text-sm font-medium">
-            <Link
-              className="rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-2 text-[color:var(--ink)] shadow-[var(--shadow-soft)]"
-              href="/"
-            >
-              记录
-            </Link>
-            <Link
-              className="rounded-full border border-transparent px-4 py-2 text-[color:var(--muted)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
-              href="/review"
-            >
-              复盘
-            </Link>
-            <Link
-              className="rounded-full border border-transparent px-4 py-2 text-[color:var(--muted)] hover:border-[color:var(--line)] hover:text-[color:var(--ink)]"
-              href="/settings"
-            >
-              设置
-            </Link>
-          </nav>
-        </header>
+        <PageHeader
+          eyebrow="System of Record"
+          title="修行记录"
+          description="极简记录，温和复盘。先证明你愿意记录。"
+        />
 
         {notice ? (
           <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--ink)] shadow-[var(--shadow-soft)] animate-fade-in">
@@ -316,9 +290,7 @@ export default function Home() {
               <p className="font-serif text-base text-[color:var(--ink)]">
                 今日提醒
               </p>
-              <p className="mt-2">
-                只要完成最小目标，当天就算有效，不必自责。
-              </p>
+              <p className="mt-2">只要完成最小目标，当天就算有效，不必自责。</p>
             </div>
           </aside>
         </section>
