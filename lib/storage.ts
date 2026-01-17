@@ -5,6 +5,7 @@ export type Template = {
   name: string;
   category?: string;
   unit: Unit;
+  totalTarget?: number;
   dailyTarget?: number;
   minimumTarget?: number;
   initialTotal?: number;
@@ -26,7 +27,7 @@ export type Preferences = {
 };
 
 export const unitLabels: Record<Unit, string> = {
-  times: "次",
+  times: "遍",
   minutes: "分钟",
   sessions: "座",
   pages: "页",
@@ -44,7 +45,7 @@ const defaultPreferences: Preferences = {
 
 const isBrowser = () => typeof window !== "undefined";
 
-const read = <T,>(key: string, fallback: T): T => {
+const read = <T>(key: string, fallback: T): T => {
   if (!isBrowser()) {
     return fallback;
   }
@@ -59,7 +60,7 @@ const read = <T,>(key: string, fallback: T): T => {
   }
 };
 
-const write = <T,>(key: string, value: T) => {
+const write = <T>(key: string, value: T) => {
   if (!isBrowser()) {
     return;
   }

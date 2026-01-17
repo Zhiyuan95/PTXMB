@@ -137,12 +137,36 @@ body::after {
   animation-delay: 0.36s;
 }
 
+:is(button, input[type="button"], input[type="submit"], input[type="reset"]) {
+  cursor: pointer;
+  /* background: #000; */
+  transition:
+    box-shadow 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+:is(button, input[type="button"], input[type="submit"], input[type="reset"]):hover {
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-1px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-in,
   .stagger > * {
     animation: none;
     opacity: 1;
+    transform: none;
+  }
+
+  :is(button, input[type="button"], input[type="submit"], input[type="reset"]) {
+    transition: none;
+  }
+
+  :is(button, input[type="button"], input[type="submit"], input[type="reset"]):hover {
     transform: none;
   }
 }

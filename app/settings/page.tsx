@@ -15,7 +15,7 @@ import {
 import { totalWithInitial } from "@/lib/records";
 
 const unitOptions: { value: Unit; label: string }[] = [
-  { value: "times", label: "次" },
+  { value: "times", label: "遍" },
   { value: "minutes", label: "分钟" },
   { value: "sessions", label: "座" },
   { value: "pages", label: "页" },
@@ -30,6 +30,7 @@ const emptyForm = {
   dailyTarget: "",
   minimumTarget: "",
   initialTotal: "",
+  totalTarget: "",
 };
 
 export default function SettingsPage() {
@@ -87,6 +88,7 @@ export default function SettingsPage() {
       dailyTarget: template.dailyTarget?.toString() ?? "",
       minimumTarget: template.minimumTarget?.toString() ?? "",
       initialTotal: template.initialTotal?.toString() ?? "",
+      totalTarget: template.totalTarget?.toString() ?? "",
     });
     setError(null);
   };
@@ -100,6 +102,7 @@ export default function SettingsPage() {
     const dailyTarget = parseNumber(form.dailyTarget);
     const minimumTarget = parseNumber(form.minimumTarget);
     const initialTotal = parseNumber(form.initialTotal);
+    const totalTarget = parseNumber(form.totalTarget);
     const category = form.category.trim();
     const nextCategory = category ? category : undefined;
     if (form.dailyTarget && dailyTarget === undefined) {
@@ -112,6 +115,10 @@ export default function SettingsPage() {
     }
     if (form.initialTotal && initialTotal === undefined) {
       setError("历史累计请输入数字");
+      return;
+    }
+    if (form.totalTarget && totalTarget === undefined) {
+      setError("总目标请输入数字");
       return;
     }
 
@@ -127,6 +134,7 @@ export default function SettingsPage() {
               dailyTarget,
               minimumTarget,
               initialTotal,
+              totalTarget,
             }
           : template
       );
@@ -145,6 +153,7 @@ export default function SettingsPage() {
       dailyTarget,
       minimumTarget,
       initialTotal,
+      totalTarget,
       isActive: true,
       createdAt: new Date().toISOString(),
     };
@@ -175,7 +184,7 @@ export default function SettingsPage() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 pb-16 pt-10">
         <PageHeader
           eyebrow="Asset Setup"
-          title="设置"
+          title="创建功课"
           description="管理功课资产，确保记录可持续。"
         />
 
@@ -200,7 +209,7 @@ export default function SettingsPage() {
                 </label>
                 <input
                   className="w-full rounded-2xl border border-[color:var(--line)] bg-white/70 px-4 py-3 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]"
-                  placeholder="例如 六字真言"
+                  placeholder="例如 绿度母心咒"
                   value={form.name}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, name: event.target.value }))
@@ -211,9 +220,8 @@ export default function SettingsPage() {
                 <label className="text-sm text-[color:var(--muted)]">
                   功课类别（可选）
                 </label>
-                <input
+                <select
                   className="w-full rounded-2xl border border-[color:var(--line)] bg-white/70 px-4 py-3 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]"
-                  placeholder="念咒 / 观修 / 接传承"
                   value={form.category ?? ""}
                   onChange={(event) =>
                     setForm((prev) => ({
@@ -221,13 +229,14 @@ export default function SettingsPage() {
                       category: event.target.value,
                     }))
                   }
-                  list="category-options"
-                />
-                <datalist id="category-options">
+                >
+                  <option value="">不设置</option>
                   {categoryOptions.map((option) => (
-                    <option key={option} value={option} />
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
                   ))}
-                </datalist>
+                </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm text-[color:var(--muted)]">
@@ -254,14 +263,14 @@ export default function SettingsPage() {
                 </select>
                 {editingId && (entryLookup.get(editingId) ?? 0) > 0 ? (
                   <p className="text-xs text-[color:var(--muted)]">
-                    已有记录的功课不允许修改单位。
+                    已有记录时不可修改单位
                   </p>
                 ) : null}
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm text-[color:var(--muted)]">
-                    今日目标 (可选)
+                    每日目标 (可选)
                   </label>
                   <input
                     className="w-full rounded-2xl border border-[color:var(--line)] bg-white/70 px-4 py-3 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]"
@@ -304,6 +313,23 @@ export default function SettingsPage() {
                     setForm((prev) => ({
                       ...prev,
                       initialTotal: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-[color:var(--muted)]">
+                  总目标 (可选)
+                </label>
+                <input
+                  className="w-full rounded-2xl border border-[color:var(--line)] bg-white/70 px-4 py-3 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]"
+                  inputMode="numeric"
+                  placeholder="例如 1000000"
+                  value={form.totalTarget}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      totalTarget: event.target.value,
                     }))
                   }
                 />
@@ -386,6 +412,12 @@ export default function SettingsPage() {
                           {template.minimumTarget ? (
                             <p className="mt-1 text-xs text-[color:var(--muted)]">
                               保底目标 {template.minimumTarget}
+                              {unitLabels[template.unit]}
+                            </p>
+                          ) : null}
+                          {template.totalTarget ? (
+                            <p className="mt-1 text-xs text-[color:var(--muted)]">
+                              总目标 {template.totalTarget}
                               {unitLabels[template.unit]}
                             </p>
                           ) : null}

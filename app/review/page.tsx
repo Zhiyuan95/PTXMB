@@ -239,6 +239,20 @@ export default function ReviewPage() {
                       selectedDate
                     );
                     const dailyTarget = template.dailyTarget ?? 0;
+                    const totalTarget = template.totalTarget ?? 0;
+                    const totalProgress =
+                      totalTarget > 0
+                        ? Math.min(
+                            (totalWithInitial(entries, template) /
+                              totalTarget) *
+                              100,
+                            100
+                          )
+                        : 0;
+                    const totalProgressLabel =
+                      totalProgress < 1
+                        ? totalProgress.toFixed(1)
+                        : Math.round(totalProgress).toString();
                     const progress =
                       dailyTarget > 0
                         ? Math.min((dayTotal / dailyTarget) * 100, 100)
@@ -314,6 +328,21 @@ export default function ReviewPage() {
                                 {unitLabels[template.unit]} ·{" "}
                                 {Math.round(progress)}%
                               </p>
+                            ) : null}
+                            {totalTarget > 0 ? (
+                              <p className="mt-1">
+                                总目标 {totalTarget}
+                                {unitLabels[template.unit]} ·{" "}
+                                {totalProgressLabel}%
+                              </p>
+                            ) : null}
+                            {totalTarget > 0 ? (
+                              <div className="mt-2 h-1 rounded-full bg-[color:var(--surface-strong)]">
+                                <div
+                                  className="h-1 rounded-full bg-[color:var(--accent)]"
+                                  style={{ width: `${totalProgress}%` }}
+                                />
+                              </div>
                             ) : null}
                           </div>
                         </div>

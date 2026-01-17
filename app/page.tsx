@@ -163,6 +163,15 @@ export default function Home() {
                     );
                     const overall = totalWithInitial(entries, template);
                     const target = template.dailyTarget ?? 0;
+                    const totalTarget = template.totalTarget ?? 0;
+                    const totalProgress =
+                      totalTarget > 0
+                        ? Math.min((overall / totalTarget) * 100, 100)
+                        : 0;
+                    const totalProgressLabel =
+                      totalProgress < 1
+                        ? totalProgress.toFixed(1)
+                        : Math.round(totalProgress).toString();
                     const progress =
                       target > 0 ? Math.min((dayTotal / target) * 100, 100) : 0;
                     const minimumMet =
@@ -175,9 +184,11 @@ export default function Home() {
                       >
                         <div className="flex flex-wrap items-start justify-between gap-4">
                           <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
-                              功课
-                            </p>
+                            {template.category ? (
+                              <p className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+                                功课类别: {template.category}
+                              </p>
+                            ) : null}
                             <h3 className="mt-2 text-xl font-semibold text-[color:var(--ink)] font-serif">
                               {template.name}
                             </h3>
@@ -218,6 +229,28 @@ export default function Home() {
                               </span>
                             </p>
                           </div>
+                          {totalTarget > 0 ? (
+                            <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4">
+                              <p className="text-xs text-[color:var(--muted)]">
+                                总目标
+                              </p>
+                              <p className="mt-2 text-lg font-semibold text-[color:var(--ink)]">
+                                {totalTarget}
+                                <span className="ml-1 text-sm text-[color:var(--muted)]">
+                                  {unitLabels[template.unit]}
+                                </span>
+                              </p>
+                              <p className="mt-1 text-xs text-[color:var(--muted)]">
+                                已完成 {totalProgressLabel}%
+                              </p>
+                              <div className="mt-2 h-1 rounded-full bg-[color:var(--surface-strong)]">
+                                <div
+                                  className="h-1 rounded-full bg-[color:var(--accent)]"
+                                  style={{ width: `${totalProgress}%` }}
+                                />
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
 
                         {template.dailyTarget ? (
