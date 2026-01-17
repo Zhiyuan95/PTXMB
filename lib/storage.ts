@@ -3,6 +3,7 @@ export type Unit = "times" | "minutes" | "sessions" | "pages";
 export type Template = {
   id: string;
   name: string;
+  category?: string;
   unit: Unit;
   dailyTarget?: number;
   minimumTarget?: number;

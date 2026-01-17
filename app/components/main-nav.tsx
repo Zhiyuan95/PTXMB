@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/", label: "记录" },
   { href: "/review", label: "复盘" },
-  { href: "/settings", label: "设置" },
+  { href: "/settings", label: "创建功课" },
 ];
 
 const baseClass =

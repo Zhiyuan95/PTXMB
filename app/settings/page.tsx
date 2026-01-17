@@ -21,8 +21,11 @@ const unitOptions: { value: Unit; label: string }[] = [
   { value: "pages", label: "页" },
 ];
 
+const categoryOptions = ["念咒", "观修", "接传承"];
+
 const emptyForm = {
   name: "",
+  category: "",
   unit: "times" as Unit,
   dailyTarget: "",
   minimumTarget: "",
@@ -79,6 +82,7 @@ export default function SettingsPage() {
     setEditingId(template.id);
     setForm({
       name: template.name,
+      category: template.category ?? "",
       unit: template.unit,
       dailyTarget: template.dailyTarget?.toString() ?? "",
       minimumTarget: template.minimumTarget?.toString() ?? "",
@@ -96,6 +100,8 @@ export default function SettingsPage() {
     const dailyTarget = parseNumber(form.dailyTarget);
     const minimumTarget = parseNumber(form.minimumTarget);
     const initialTotal = parseNumber(form.initialTotal);
+    const category = form.category.trim();
+    const nextCategory = category ? category : undefined;
     if (form.dailyTarget && dailyTarget === undefined) {
       setError("今日目标请输入数字");
       return;
@@ -116,6 +122,7 @@ export default function SettingsPage() {
           ? {
               ...template,
               name: form.name.trim(),
+              category: nextCategory,
               unit: hasEntries ? template.unit : form.unit,
               dailyTarget,
               minimumTarget,
@@ -133,6 +140,7 @@ export default function SettingsPage() {
     const nextTemplate: Template = {
       id: createId(),
       name: form.name.trim(),
+      category: nextCategory,
       unit: form.unit,
       dailyTarget,
       minimumTarget,
@@ -198,6 +206,28 @@ export default function SettingsPage() {
                     setForm((prev) => ({ ...prev, name: event.target.value }))
                   }
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-[color:var(--muted)]">
+                  功课类别（可选）
+                </label>
+                <input
+                  className="w-full rounded-2xl border border-[color:var(--line)] bg-white/70 px-4 py-3 text-sm text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]"
+                  placeholder="念咒 / 观修 / 接传承"
+                  value={form.category ?? ""}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      category: event.target.value,
+                    }))
+                  }
+                  list="category-options"
+                />
+                <datalist id="category-options">
+                  {categoryOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
               </div>
               <div className="space-y-2">
                 <label className="text-sm text-[color:var(--muted)]">
@@ -338,6 +368,11 @@ export default function SettingsPage() {
                           <h3 className="mt-2 text-xl font-semibold text-[color:var(--ink)] font-serif">
                             {template.name}
                           </h3>
+                          {template.category ? (
+                            <p className="mt-1 text-xs text-[color:var(--muted)]">
+                              {template.category}
+                            </p>
+                          ) : null}
                           <p className="mt-2 text-sm text-[color:var(--muted)]">
                             单位 {unitLabels[template.unit]} · 累计 {total}
                             {unitLabels[template.unit]} · 记录 {entryCount} 条
