@@ -10,6 +10,7 @@ export type Template = {
   minimumTarget?: number;
   initialTotal?: number;
   isActive: boolean;
+  color?: string;
   createdAt: string;
 };
 
@@ -19,6 +20,7 @@ export type Entry = {
   amount: number;
   unit: Unit;
   entryDate: string;
+  note?: string;
   createdAt: string;
 };
 

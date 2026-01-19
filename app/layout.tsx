@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
+import QueryProvider from "./providers/query-provider";
+import { AuthProvider } from "./providers/auth-provider";
+import DataMigrator from "./components/data-migrator";
 
 export const metadata: Metadata = {
   title: "修行记录",
@@ -14,8 +16,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className= "antialiased">
-        {children}
+      <body className="antialiased">
+        <QueryProvider>
+          <AuthProvider>
+            <DataMigrator />
+            {children}
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
