@@ -6,6 +6,8 @@ interface SearchInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 export default function SearchInput({
@@ -13,6 +15,8 @@ export default function SearchInput({
   onChange,
   placeholder = "搜索...",
   className = "",
+  onFocus,
+  onBlur,
 }: SearchInputProps) {
   return (
     <div className={`relative ${className}`}>
@@ -21,6 +25,8 @@ export default function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
         className="w-full rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] py-3 pl-10 pr-4 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--muted)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--accent)] transition-all"
       />
       <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--muted)]">

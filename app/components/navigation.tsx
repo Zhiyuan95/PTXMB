@@ -20,8 +20,10 @@ export default function Navigation() {
     return "修行记录";
   };
 
-  const activeClass = "bg-[color:var(--primary)] text-white shadow-md transform scale-105 font-bold";
-  const inactiveClass = "text-[color:var(--muted)] hover:bg-white/40 hover:text-[color:var(--ink)]";
+  const activeClass =
+    "bg-[color:var(--primary)] text-white shadow-md transform scale-105 font-bold";
+  const inactiveClass =
+    "text-[color:var(--muted)] hover:bg-white/40 hover:text-[color:var(--ink)]";
 
   return (
     <nav className="sticky top-0 z-50 px-6 py-3 glass-nav mb-8 border-b border-white/20">
@@ -34,11 +36,11 @@ export default function Navigation() {
             {getPageTitle()}
           </h1>
         </div>
-        
+
         <div className="hidden md:flex items-center gap-1 p-1 rounded-2xl glass-card">
           <Link href="/">
             <button
-              className={`px-6 py-2 rounded-xl transition-all text-sm ${
+              className={`px-6 py-2 rounded-xl transition-all text-md ${
                 isActive("/") ? activeClass : inactiveClass
               }`}
             >
@@ -47,7 +49,7 @@ export default function Navigation() {
           </Link>
           <Link href="/review">
             <button
-              className={`px-6 py-2 rounded-xl transition-all text-sm ${
+              className={`px-6 py-2 rounded-xl transition-all text-md ${
                 isActive("/review") ? activeClass : inactiveClass
               }`}
             >
@@ -56,7 +58,7 @@ export default function Navigation() {
           </Link>
           <Link href="/settings">
             <button
-              className={`px-6 py-2 rounded-xl transition-all text-sm ${
+              className={`px-6 py-2 rounded-xl transition-all text-md ${
                 isActive("/settings") ? activeClass : inactiveClass
               }`}
             >
@@ -66,10 +68,10 @@ export default function Navigation() {
         </div>
 
         <div className="flex items-center gap-4">
-           <div className="relative group cursor-pointer">
-             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[color:var(--primary)] to-[color:var(--accent)] flex items-center justify-center text-white font-bold text-sm shadow-md">
-                 User
-             </div>
+          <div className="relative group cursor-pointer">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[color:var(--primary)] to-[color:var(--accent)] flex items-center justify-center text-white font-bold text-sm shadow-md">
+              User
+            </div>
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
           </div>
         </div>

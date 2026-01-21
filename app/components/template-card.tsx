@@ -40,14 +40,14 @@ export default function TemplateCard({
   // Hex Alpha: 10 = ~6%, 20 = ~12%, 40 = ~25%
   const bgStyle = {
     backgroundColor: `${baseColor}35`, // Very subtle tint
-    borderColor: `${baseColor}40`,     // Semi-transparent border
+    borderColor: `${baseColor}40`, // Semi-transparent border
   };
   const elementStyle = {
     backgroundColor: baseColor,
   };
 
   return (
-    <div 
+    <div
       className="rounded-3xl border p-5 shadow-[var(--shadow-soft)] transition-all hover:shadow-md"
       style={bgStyle}
     >

@@ -6,17 +6,16 @@ import {
 import ProgressRing from "./progress-ring";
 import { unitLabels, type Template, type Entry } from "@/lib/storage";
 import { sumEntriesForDate, totalWithInitial } from "@/lib/records";
-import { todayISO } from "@/lib/dates";
 
 interface PracticeCardProps {
   template: Template;
   entries: Entry[];
   onRecord: (template: Template) => void;
+  selectedDate: string;
 }
 
-export default function PracticeCard({ template, entries, onRecord }: PracticeCardProps) {
-  const today = todayISO();
-  const dayTotal = sumEntriesForDate(entries, template.id, today);
+export default function PracticeCard({ template, entries, onRecord, selectedDate }: PracticeCardProps) {
+  const dayTotal = sumEntriesForDate(entries, template.id, selectedDate);
   const total = totalWithInitial(entries, template);
   const target = template.dailyTarget || 0;
   const progressPercent = target > 0 ? Math.min(Math.round((dayTotal / target) * 100), 100) : 0;
@@ -28,11 +27,11 @@ export default function PracticeCard({ template, entries, onRecord }: PracticeCa
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative z-10">
         <div className="flex-grow">
             <div className="flex items-center gap-3 mb-4">
-                <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-green-700' : 'bg-[color:var(--primary)]/10 text-[color:var(--primary)]'}`}>
+                <span className={`px-3 py-1 rounded-lg text-sm font-black uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-green-700' : 'bg-[color:var(--primary)]/10 text-[color:var(--primary)]'}`}>
                     {isCompleted ? 'Completed' : 'Ongoing'}
                 </span>
                 {template.category && (
-                    <span className="text-[color:var(--muted)] text-sm font-medium flex items-center gap-1">
+                    <span className="text-[color:var(--muted)] text-md font-medium flex items-center gap-1">
                         <FontAwesomeIcon icon={faLayerGroup} className="text-xs" /> {template.category}
                     </span>
                 )}
@@ -41,14 +40,14 @@ export default function PracticeCard({ template, entries, onRecord }: PracticeCa
             
             <div className="grid grid-cols-2 gap-4 mt-8">
             <div className="bg-white/40 border border-white/50 p-5 rounded-3xl">
-                <span className="text-[color:var(--muted)] text-xs font-bold uppercase tracking-wider block mb-1">今日已记</span>
+                <span className="text-[color:var(--muted)] text-sm font-bold uppercase tracking-wider block mb-1">今日已记</span>
                 <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-display font-bold text-[color:var(--primary)]">{dayTotal.toLocaleString()}</span>
                 <span className="text-[color:var(--muted)] text-sm">{unitLabels[template.unit]}</span>
                 </div>
             </div>
             <div className="bg-white/40 border border-white/50 p-5 rounded-3xl">
-                <span className="text-[color:var(--muted)] text-xs font-bold uppercase tracking-wider block mb-1">累计总量</span>
+                <span className="text-[color:var(--muted)] text-sm font-bold uppercase tracking-wider block mb-1">累计总量</span>
                 <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-display font-bold text-[color:var(--ink)]">
                     {total > 10000 ? (total / 10000).toFixed(1) + 'W' : total.toLocaleString()}
@@ -85,8 +84,8 @@ export default function PracticeCard({ template, entries, onRecord }: PracticeCa
             <div className="mt-12 space-y-4 relative z-10 w-full">
             <div className="flex justify-between items-end px-1">
                 <div>
-                    <span className="text-sm font-bold block text-[color:var(--ink)]">每日目标达成</span>
-                    <p className="text-[11px] text-[color:var(--muted)] font-medium">目标: {target.toLocaleString()}</p>
+                    <span className="text-md font-bold block text-[color:var(--ink)]">每日目标达成</span>
+                    <p className="text-md text-[color:var(--muted)] font-medium">目标: {target.toLocaleString()}</p>
                 </div>
                 <span className="text-[color:var(--accent)] font-black text-xl">{progressPercent}%</span>
             </div>

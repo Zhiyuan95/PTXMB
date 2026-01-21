@@ -1,28 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
   faPenNib,
   faMagicWandSparkles,
+  faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import EntryModal from "./components/entry-modal";
 import SearchInput from "./components/search-input";
 import PracticeCard from "./components/practice-card";
 import Navigation from "./components/navigation";
 import { formatShortDate, todayISO } from "@/lib/dates";
-import { unitLabels, type Template } from "@/lib/storage";
-import { sumEntriesForDate, totalWithInitial } from "@/lib/records";
+import { type Template } from "@/lib/storage";
+import { sumEntriesForDate } from "@/lib/records";
 import { useSystemData } from "@/hooks/use-system-data";
 import { upsertJournalLog, getJournalLog } from "@/lib/actions/journal";
 
 export default function Home() {
   const { templates, entries, addEntry } = useSystemData();
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Journal State
   const [journalContent, setJournalContent] = useState("");
@@ -31,12 +34,9 @@ export default function Home() {
   // Load Journal
   useEffect(() => {
     async function loadJournal() {
-      const today = todayISO();
-      if (selectedDate === today) {
-        const log = await getJournalLog(today);
-        if (log) setJournalContent(log.content);
-        else setJournalContent("");
-      }
+      const log = await getJournalLog(selectedDate);
+      if (log) setJournalContent(log.content);
+      else setJournalContent("");
     }
     loadJournal();
   }, [selectedDate]);
@@ -46,12 +46,12 @@ export default function Home() {
     const timer = setTimeout(async () => {
       if (journalContent) {
         setIsJournalSaving(true);
-        await upsertJournalLog(todayISO(), journalContent);
+        await upsertJournalLog(selectedDate, journalContent);
         setIsJournalSaving(false);
       }
     }, 2000);
     return () => clearTimeout(timer);
-  }, [journalContent]);
+  }, [journalContent, selectedDate]);
 
   // Derived Data
   const activeTemplates = useMemo(
@@ -68,11 +68,20 @@ export default function Home() {
 
   const today = todayISO();
   const totalRecordedCount = activeTemplates.filter(
-    (t) => sumEntriesForDate(entries, t.id, today) > 0,
+    (t) => sumEntriesForDate(entries, t.id, selectedDate) > 0,
   ).length;
   const globalProgress = Math.round(
     (totalRecordedCount / (activeTemplates.length || 1)) * 100,
   );
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedDate(e.target.value);
+  };
+
+  const dateDisplay = useMemo(() => {
+    if (selectedDate === today) return "今天";
+    return formatShortDate(selectedDate);
+  }, [selectedDate, today]);
 
   const handleSaveEntry = (amount: number, note?: string) => {
     if (!activeTemplate) return;
@@ -90,7 +99,6 @@ export default function Home() {
     <div className="font-sans antialiased min-h-screen pb-20">
       {/* Navigation */}
       <Navigation />
-
       <main className="max-w-7xl mx-auto px-6 pt-12 pb-24">
         {/* Header */}
         <header className="mb-14 relative animate-fade-in">
@@ -113,18 +121,46 @@ export default function Home() {
           {/* Main Content Column */}
           <div className="col-span-12 lg:col-span-8 space-y-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-1 glass-card p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto">
-                <button className="px-5 py-2.5 rounded-xl bg-white/60 shadow-sm text-sm font-bold whitespace-nowrap text-[color:var(--ink)]">
-                  今天
-                </button>
-                <span className="text-xs text-[color:var(--muted)] px-3">
-                  {formatShortDate(today)}
-                </span>
+              {/* Calendar / Date Picker */}
+              {/* Calendar / Date Picker */}
+              <div className="flex items-center gap-3">
+                <div className="glass-card px-5 py-2.5 rounded-xl text-sm font-bold text-[color:var(--ink)] shadow-sm">
+                  {dateDisplay}{" "}
+                  <span className="text-[color:var(--muted)]/50 ml-2 text-xs">
+                    {selectedDate === today
+                      ? formatShortDate(today)
+                      : selectedDate}
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <button
+                    onClick={() => dateInputRef.current?.showPicker()}
+                    className="w-10 h-10 rounded-xl bg-[color:var(--surface)] border border-[color:var(--line)] hover:bg-white/80 hover:scale-105 active:scale-95 transition-all flex items-center justify-center text-[color:var(--primary)] shadow-sm cursor-pointer"
+                    title="选择日期"
+                  >
+                    <FontAwesomeIcon icon={faCalendarAlt} className="text-lg" />
+                  </button>
+                  <input
+                    ref={dateInputRef}
+                    id="date-picker-input"
+                    type="date"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    className="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden text-[0px]"
+                  />
+                </div>
               </div>
-              <div className="relative w-full sm:max-w-xs">
+
+              {/* Expanding Search Input */}
+              <div
+                className={`relative transition-all duration-300 ease-in-out ${isSearchFocused ? "w-full sm:w-96" : "w-full sm:w-64"}`}
+              >
                 <SearchInput
                   value={searchQuery}
                   onChange={setSearchQuery}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
                   placeholder="搜索功课..."
                   className="w-full"
                 />
@@ -145,6 +181,7 @@ export default function Home() {
                     key={template.id}
                     template={template}
                     entries={entries}
+                    selectedDate={selectedDate}
                     onRecord={setActiveTemplate}
                   />
                 ))
@@ -171,8 +208,8 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-4 space-y-8">
             {/* Summary Section */}
             <section className="glass-card p-8 rounded-[2rem]">
-              <h4 className="text-[10px] font-black text-[color:var(--muted)] uppercase tracking-[0.3em] mb-8">
-                Summary • 今日小结
+              <h4 className="font-black  text-[color:var(--muted)] uppercase tracking-[0.3em] mb-8">
+                Summary • 每日小结
               </h4>
               <div className="flex flex-col items-center text-center">
                 <div className="relative mb-6">
@@ -187,15 +224,15 @@ export default function Home() {
                 <h5 className="text-xl font-bold mb-3 text-[color:var(--ink)]">
                   {globalProgress >= 100 ? "法喜充满" : "尚需精进"}
                 </h5>
-                <p className="text-sm text-[color:var(--muted)] leading-relaxed mb-8">
+                <p className="text-[color:var(--muted)] leading-relaxed mb-8">
                   {globalProgress >= 100
-                    ? "今日功课圆满，回向众生，功德无量。"
-                    : "修行如细水长流，不在一时猛进。今日尚未记录，先从三次深呼吸开始。"}
+                    ? "当日功课圆满，回向众生，功德无量。"
+                    : "修行如细水长流，不在一时猛进。当日尚未记录，先从三次深呼吸开始。"}
                 </p>
               </div>
             </section>
 
-            {/* AI Spiritual Journal */}
+            {/* Spiritual Journal */}
             <section className="glass-card p-8 rounded-[2rem] bg-[color:var(--secondary)]/5 overflow-hidden relative">
               <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                 <FontAwesomeIcon
@@ -209,7 +246,7 @@ export default function Home() {
                     icon={faPenNib}
                     className="text-[color:var(--secondary)]"
                   />
-                  <h4 className="font-display text-xl font-bold text-[color:var(--ink)]">
+                  <h4 className="font-display text-2xl font-bold text-[color:var(--ink)]">
                     修行日志
                   </h4>
                 </div>
@@ -222,17 +259,9 @@ export default function Home() {
               <textarea
                 value={journalContent}
                 onChange={(e) => setJournalContent(e.target.value)}
-                className="w-full h-40 bg-transparent border-none focus:ring-0 p-0 text-[color:var(--ink)]/80 placeholder-[color:var(--muted)]/60 text-sm leading-relaxed resize-none font-medium focus:outline-none"
+                className="w-full h-40 bg-transparent border-none focus:ring-0 p-0 text-[color:var(--ink)]/80 placeholder-[color:var(--muted)]/60 text leading-relaxed resize-none font-medium focus:outline-none"
                 placeholder="此刻的心境如何？有哪些感悟或障碍..."
               />
-              <div className="mt-4 pt-4 border-t border-[color:var(--line)]">
-                <div className="flex items-center justify-between">
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[color:var(--primary)]/10 hover:bg-[color:var(--primary)]/20 transition-colors text-[10px] font-bold text-[color:var(--primary)] uppercase disabled:opacity-50">
-                    <FontAwesomeIcon icon={faMagicWandSparkles} />
-                    寻求指引 (AI)
-                  </button>
-                </div>
-              </div>
             </section>
 
             {/* Weekly Trends */}
