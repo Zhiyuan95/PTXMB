@@ -154,7 +154,6 @@ export default function TrendChart({
                     <h3 className="font-display text-2xl font-bold text-[color:var(--ink)]">
                         修行趋势
                     </h3>
-                    
                     <button 
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[color:var(--surface)] text-[color:var(--muted)] hover:text-[color:var(--primary)] transition-colors"

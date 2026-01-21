@@ -13,7 +13,7 @@ import EntryModal from "./components/entry-modal";
 import SearchInput from "./components/search-input";
 import PracticeCard from "./components/practice-card";
 import Navigation from "./components/navigation";
-import { formatShortDate, todayISO } from "@/lib/dates";
+import { formatShortDate, todayISO, addDays, fromISODate, getWeekStart } from "@/lib/dates";
 import { type Template } from "@/lib/storage";
 import { sumEntriesForDate } from "@/lib/records";
 import { useSystemData } from "@/hooks/use-system-data";
@@ -82,6 +82,33 @@ export default function Home() {
     if (selectedDate === today) return "今天";
     return formatShortDate(selectedDate);
   }, [selectedDate, today]);
+
+  const weeklyTrendData = useMemo(() => {
+    const days = [];
+    const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const startOfWeek = getWeekStart(today);
+
+    for (let i = 0; i < 7; i++) {
+      const dateStr = addDays(startOfWeek, i);
+      const dateDate = fromISODate(dateStr);
+      const label = dayLabels[dateDate.getDay()];
+
+      const completedCount = activeTemplates.filter(
+        (t) => sumEntriesForDate(entries, t.id, dateStr) > 0,
+      ).length;
+
+      const total = activeTemplates.length || 1;
+      const percentage = Math.round((completedCount / total) * 100);
+
+      days.push({
+        date: dateStr,
+        label,
+        percentage,
+        isToday: dateStr === today,
+      });
+    }
+    return days;
+  }, [activeTemplates, entries, today]);
 
   const handleSaveEntry = (amount: number, note?: string) => {
     if (!activeTemplate) return;
@@ -270,33 +297,23 @@ export default function Home() {
                 Weekly Trends
               </h4>
               <div className="h-44 flex items-end justify-between gap-3 px-1">
-                {/* Placeholder Trend Data - for visual only as per design, real chart is in Review page */}
-                {[40, 70, 30, 90, 50, 65, 45].map((val, idx) => {
-                  const days = [
-                    "MON",
-                    "TUE",
-                    "WED",
-                    "THU",
-                    "FRI",
-                    "SAT",
-                    "SUN",
-                  ];
-                  const isToday = idx === 6;
+                {weeklyTrendData.map((data, idx) => {
                   return (
                     <div
                       key={idx}
                       className="flex flex-col items-center gap-3 flex-1 group"
                     >
-                      <div className="w-full bg-white/20 rounded-full h-32 md:h-40 relative overflow-hidden">
-                        <div
-                          className={`absolute bottom-0 w-full transition-all duration-700 ${isToday ? "bg-[color:var(--accent)] shadow-[0_0_15px_rgba(217,119,6,0.3)]" : "bg-[color:var(--primary)]/30 group-hover:bg-[color:var(--primary)]/50"}`}
-                          style={{ height: `${val}%` }}
-                        ></div>
-                      </div>
+                        <div className="relative w-full h-32 md:h-40 flex items-end">
+                             <div className="w-full bg-white/20 rounded-full h-full absolute top-0 left-0"></div>
+                             <div
+                                className={`w-full rounded-full transition-all duration-700 relative z-10 ${data.isToday ? "bg-[color:var(--accent)] shadow-[0_0_15px_rgba(217,119,6,0.3)]" : "bg-[color:var(--primary)]/30 group-hover:bg-[color:var(--primary)]/50"}`}
+                                style={{ height: `${Math.max(data.percentage, 5)}%` }} // Min height for visibility
+                              ></div>
+                        </div>
                       <span
-                        className={`text-[9px] font-black ${isToday ? "text-[color:var(--accent)]" : "text-[color:var(--muted)]/50"}`}
+                        className={`text-[9px] font-black ${data.isToday ? "text-[color:var(--accent)]" : "text-[color:var(--muted)]/50"}`}
                       >
-                        {days[idx]}
+                        {data.label}
                       </span>
                     </div>
                   );
