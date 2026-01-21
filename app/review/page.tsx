@@ -7,13 +7,14 @@ import Navigation from "../components/navigation";
 import Footer from "../components/footer";
 import SearchInput from "../components/search-input";
 import JournalList from "./components/journal-list";
-import { InsightCard, StatCard } from "./components/InsightCard";
+import { InsightCard } from "./components/InsightCard";
+import StatCard from "./components/stat-card";
 import StatsGrid from "./components/stats-grid";
 import PracticeReviewCalendar from "./components/practiceReviewCalendar";
 import DistributionSection from "./components/distribution-section";
 import StreakCard from "./components/streak-card";
-import HeatmapSection from "./components/heatmap-section";
-import { faCalendarAlt, faSpa } from "@fortawesome/free-solid-svg-icons";
+import HeatmapSection from "./components/heatmap";
+import { faCalendarAlt, faSpa, faChartLine } from "@fortawesome/free-solid-svg-icons";
 
 export default function ReviewPage() {
   const { entries, templates } = useSystemData();
@@ -98,7 +99,6 @@ export default function ReviewPage() {
           {/* Left Column: Calendar & Content */}
           <div className="col-span-12 lg:col-span-8 space-y-8 stagger">
              <PracticeReviewCalendar entries={entries} templates={templates} />
-            
             <HeatmapSection entries={entries} />
 
             {/* Journal Section (Moved here based on plan) */}
@@ -126,15 +126,16 @@ export default function ReviewPage() {
           <div className="col-span-12 lg:col-span-4 space-y-8 stagger">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <StatCard
-                icon={faCalendarAlt}
                 label="本月修行天数"
                 value={activeDays}
                 subValue="/ 30"
-                colorClass="bg-green-100 text-green-600"
-                trend="Keep it up"
+                icon={faCalendarAlt}
+                iconColorClass="text-green-600"
+                bottomText="Keep it up"
+                bottomIcon={faChartLine}
+                bottomColorClass="text-green-600"
               />
               <StatCard
-                icon={faSpa}
                 label="累计修行总量"
                 value={
                   totalCount > 10000
@@ -142,7 +143,8 @@ export default function ReviewPage() {
                     : totalCount
                 }
                 subValue="次"
-                colorClass="bg-[color:var(--accent)] text-[color:var(--accent)]"
+                icon={faSpa}
+                iconColorClass="text-[color:var(--accent)]"
               />
             </div>
             <DistributionSection templates={templates} entries={entries} />

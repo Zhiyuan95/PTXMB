@@ -116,13 +116,13 @@ export default function PracticeDetailModal({
               {Object.entries(unitTotals).map(([unit, total]) => (
                 <div
                   key={unit}
-                  className="flex-1 min-w-[100px] p-4 rounded-2xl bg-[color:var(--surface)]/50 border border-[color:var(--line)]/50 text-center"
+                  className=" flex-1 min-w-[100px] p-4 rounded-2xl bg-[color:var(--surface)]/50 border border-[color:var(--line)]/50 text-center"
                 >
                   <div className="text-2xl font-display font-bold text-[color:var(--ink)]">
-                    {total.toLocaleString()}
-                  </div>
-                  <div className="text-[10px] text-[color:var(--muted)] uppercase tracking-wider font-bold">
+                    {total.toLocaleString()}{" "}
+                   <span className="text-sm text-[color:var(--muted)] uppercase tracking-wider font-bold">
                     {unitLabels[unit as keyof typeof unitLabels] || unit}
+                   </span>
                   </div>
                 </div>
               ))}
