@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getTemplates, addTemplate, updateTemplate } from "@/lib/actions/templates";
+import { getTemplates, addTemplate, updateTemplate, deleteTemplate } from "@/lib/actions/templates";
 import { getEntries, addEntry } from "@/lib/actions/entries";
 import { getPreferences, updateDedication } from "@/lib/actions/preferences";
 import { Template, Entry, Preferences, Unit } from "@/lib/storage";
@@ -71,6 +71,30 @@ export function useUpdateTemplateMutation() {
       return { previousTemplates };
     },
     onError: (_err, _vars, context) => {
+      queryClient.setQueryData(queryKeys.templates, context?.previousTemplates);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.templates });
+    },
+  });
+}
+
+export function useDeleteTemplateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteTemplate,
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.templates });
+      const previousTemplates = queryClient.getQueryData<Template[]>(queryKeys.templates);
+
+      queryClient.setQueryData<Template[]>(queryKeys.templates, (old) =>
+        (old || []).filter((t) => t.id !== id)
+      );
+
+      return { previousTemplates };
+    },
+    onError: (_err, _id, context) => {
       queryClient.setQueryData(queryKeys.templates, context?.previousTemplates);
     },
     onSettled: () => {

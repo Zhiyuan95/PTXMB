@@ -9,6 +9,7 @@ import {
   useUpdateTemplateMutation,
   useAddEntryMutation,
   useUpdateDedicationMutation,
+  useDeleteTemplateMutation,
 } from "@/hooks/use-queries";
 import { Template, Unit } from "@/lib/storage";
 
@@ -19,6 +20,7 @@ export function useSystemData() {
 
   const addTemplateMutation = useAddTemplateMutation();
   const updateTemplateMutation = useUpdateTemplateMutation();
+  const deleteTemplateMutation = useDeleteTemplateMutation();
   const addEntryMutation = useAddEntryMutation();
   const updateDedicationMutation = useUpdateDedicationMutation();
 
@@ -57,6 +59,10 @@ export function useSystemData() {
     updateDedicationMutation.mutate(text);
   };
 
+  const deleteTemplate = (id: string) => {
+    deleteTemplateMutation.mutate(id);
+  };
+
   const loading = false; // TanStack Query handles loading internals, but we can expose if needed.
 
   return {
@@ -66,6 +72,7 @@ export function useSystemData() {
     addEntry,
     addTemplate,
     updateTemplate,
+    deleteTemplate,
     toggleTemplateActive,
     updateDedication,
     loading,

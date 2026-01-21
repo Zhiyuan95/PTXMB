@@ -38,6 +38,27 @@ export async function getJournalLog(date: string): Promise<JournalLog | null> {
   return mapToJournalLog(data);
 }
 
+export async function getRecentJournalLogs(limit: number = 10): Promise<JournalLog[]> {
+  const supabase = await createClient();
+  const user = (await supabase.auth.getUser()).data.user;
+  
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("journal_logs")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("log_date", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Error fetching journal logs:", error);
+    return [];
+  }
+
+  return data.map(mapToJournalLog);
+}
+
 export async function upsertJournalLog(date: string, content: string): Promise<JournalLog | null> {
   const supabase = await createClient();
   const user = (await supabase.auth.getUser()).data.user;

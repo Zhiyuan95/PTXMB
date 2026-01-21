@@ -1,581 +1,292 @@
 "use client";
 
-import { useSystemData } from "@/hooks/use-system-data";
-import { useDateRange, DateRangeType } from "@/hooks/use-date-range";
-import { aggregateChartData, calculateSummary } from "@/lib/analytics";
-import { format } from "date-fns";
-import PageHeader from "../components/page-header";
-import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { useMemo, useState, useRef, useEffect } from "react";
-import { faChevronDown, faChevronUp, faCheck, faLayerGroup, faBullseye } from "@fortawesome/free-solid-svg-icons";
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import JournalEditor from "./components/journal-editor";
-import { differenceInDays } from "date-fns";
+import { 
+  faCalendarAlt, 
+  faChartLine, faSpa, faLightbulb, faSearch, faPenFancy
+} from "@fortawesome/free-solid-svg-icons";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { format, subDays, eachDayOfInterval } from "date-fns";
+import { zhCN } from "date-fns/locale";
 
-const rangeOptions: { value: DateRangeType; label: string }[] = [
-  { value: "week", label: "本周" },
-  { value: "fortnight", label: "近半月" },
-  { value: "month", label: "本月" },
-  { value: "quarter", label: "本季" },
-  { value: "year", label: "本年" },
-  { value: "all", label: "至今" },
-];
+import { useSystemData } from "@/hooks/use-system-data";
+import { getRecentJournalLogs, type JournalLog } from "@/lib/actions/journal";
+import JournalEditor from "./components/journal-editor";
+import Navigation from "../components/navigation";
+
+// --- Components ---
+
+function StatCard({ 
+    icon, 
+    trend, 
+    label, 
+    value, 
+    subValue, 
+    colorClass 
+}: { 
+    icon: any, 
+    trend?: string, 
+    label: string, 
+    value: string | number, 
+    subValue: string, 
+    colorClass: string 
+}) {
+    return (
+        <div className="glass-card p-6 rounded-3xl group transition-all hover:-translate-y-1">
+            <div className="flex justify-between items-start mb-4">
+                <div className={`p-3 rounded-2xl ${colorClass} bg-opacity-10 text-current`}>
+                    <FontAwesomeIcon icon={icon} />
+                </div>
+                {trend && (
+                    <span className="text-green-600 text-xs font-bold flex items-center gap-1">
+                        <FontAwesomeIcon icon={faChartLine} className="text-xs" /> {trend}
+                    </span>
+                )}
+            </div>
+            <p className="text-[color:var(--muted)] text-sm mb-1">{label}</p>
+            <h3 className="text-3xl font-display font-bold text-[color:var(--ink)]">
+                {value} <span className="text-base font-sans font-normal opacity-40">{subValue}</span>
+            </h3>
+        </div>
+    );
+}
+
+function InsightCard({ text }: { text: string }) {
+    return (
+        <div className="glass-card p-8 rounded-3xl border-l-4 border-[color:var(--primary)]/40">
+            <div className="flex items-center gap-3 mb-3">
+                <FontAwesomeIcon icon={faLightbulb} className="text-[color:var(--primary)]" />
+                <h4 className="font-bold text-lg text-[color:var(--ink)]">修行建议</h4>
+            </div>
+            <p className="text-[color:var(--muted)] italic text-sm leading-relaxed">
+                “{text}”
+            </p>
+        </div>
+    );
+}
 
 export default function ReviewPage() {
-  const { templates, entries, preferences, updateDedication } = useSystemData();
-  const { rangeType, setRangeType, range } = useDateRange();
-  const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
-  const [isSnapshotExpanded, setIsSnapshotExpanded] = useState(false);
-  const [showTarget, setShowTarget] = useState(false);
-  
-  // Dropdown state
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
+  const { entries, templates } = useSystemData();
+  const [logs, setLogs] = useState<JournalLog[]>([]);
+  const [showEditor, setShowEditor] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Close dropdown when clicking outside
+  // Fetch Logs
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setIsFilterOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    getRecentJournalLogs(20).then(setLogs);
   }, []);
 
-  const toggleTemplateSelection = (id: string) => {
-      setSelectedTemplateIds(prev => {
-          if (prev.includes(id)) {
-              return prev.filter(tid => tid !== id);
-          } else {
-              return [...prev, id];
-          }
-      });
-  };
+  // --- Analytics ---
+  const chartData = useMemo(() => {
+    // Generate last 7 days for the chart default
+    const end = new Date();
+    const start = subDays(end, 6);
+    const days = eachDayOfInterval({ start, end });
 
-  const clearSelection = () => {
-      setSelectedTemplateIds([]); // Empty means "All"
-      setIsFilterOpen(false);
-      setShowTarget(false); // Reset target view
-  };
-    
-  // Prepare Data
-  const filteredTemplates = useMemo(() => {
-    if (selectedTemplateIds.length === 0) return templates;
-    return templates.filter((t) => selectedTemplateIds.includes(t.id));
-  }, [templates, selectedTemplateIds]);
-
-  const chartData = useMemo(
-    () => aggregateChartData(filteredTemplates, entries, range),
-    [filteredTemplates, entries, range],
-  );
-
-  const summary = useMemo(
-    () =>
-      calculateSummary(
-        entries,
-        range,
-        selectedTemplateIds.length === 0 ? undefined : selectedTemplateIds,
-      ),
-    [entries, range, selectedTemplateIds],
-  );
-
-  // Today's Snapshot Data
-  const todaySnapshot = useMemo(() => {
-    // 1. Calculate today's total
-    const today = new Date(); // Local today
-    const todayEntries = entries.filter((e) => {
-      const entryDate = e.entryDate;
-      const todayStr = format(today, "yyyy-MM-dd");
-      return entryDate === todayStr;
+    return days.map((day) => {
+      const dateStr = format(day, "yyyy-MM-dd");
+      const dayEntries = entries.filter((e) => e.entryDate === dateStr);
+      // Simplify: Just count total items for now to map to the bar chart height visual
+      const totalCount = dayEntries.reduce((sum, e) => sum + e.amount, 0);
+      return {
+        date: format(day, "EEE", { locale: zhCN }).toUpperCase(), // MON, TUE...
+        fullDate: dateStr,
+        value: totalCount,
+      };
     });
+  }, [entries]);
 
-    const totalCount = todayEntries.reduce((sum, e) => sum + e.amount, 0);
+  // Overall Stats
+  const totalCount = useMemo(() => entries.reduce((sum, e) => sum + e.amount, 0), [entries]);
+  const activeDays = useMemo(() => {
+      const uniqueDays = new Set(entries.map(e => e.entryDate));
+      return uniqueDays.size;
+  }, [entries]);
 
-    // 2. Aggregate Details
-    const templateTotals: Record<string, number> = {};
-    todayEntries.forEach((e) => {
-      if (!templateTotals[e.templateId]) templateTotals[e.templateId] = 0;
-      templateTotals[e.templateId] += e.amount;
-    });
-
-    const details = Object.entries(templateTotals)
-      .map(([tId, amount]) => {
-        const t = templates.find((temp) => temp.id === tId);
-        return {
-          id: tId,
-          name: t?.name || "未知",
-          color: t?.color || "var(--muted)",
-          amount,
-        };
-      })
-      .sort((a, b) => b.amount - a.amount);
-
-    return { totalCount, details };
-  }, [entries, templates]);
-
-    // Derive selected templates for display (single or multiple)
-  const activeSelectedTemplates = useMemo(() => {
-    if (selectedTemplateIds.length > 0) {
-      return templates.filter((t) => selectedTemplateIds.includes(t.id));
-    }
-    return [];
-  }, [selectedTemplateIds, templates]);
-
-  // Target Calculation
-  const targetStats = useMemo(() => {
-    // Only available when exactly 1 template is selected
-    if (activeSelectedTemplates.length !== 1) return null;
-
-    const template = activeSelectedTemplates[0];
-    const dailyTarget = template.dailyTarget || 0;
-    
-    if (dailyTarget === 0) return null;
-
-    if (!range.start) return null;
-    const daysInPeriod = differenceInDays(range.end, range.start) + 1;
-    const periodTarget = dailyTarget * daysInPeriod;
-    const actualTotal = summary.totalCount;
-    const gap = actualTotal - periodTarget;
-
-    return {
-        dailyTarget,
-        periodTarget,
-        actualTotal,
-        gap,
-        progress: Math.min(Math.round((actualTotal / periodTarget) * 100), 999), // Cap at reasonable number
-    };
-
-  }, [activeSelectedTemplates, range, summary.totalCount]);
+  // Insights logic (Simple mock for now)
+  const insight = useMemo(() => {
+      const maxDay = chartData.reduce((prev, current) => (current.value > prev.value ? current : prev), chartData[0]);
+      return `发现你在过去一周的修行中，${maxDay?.date || '近日'}的精进程度最高。建议保持这份勇猛心，同时注意劳逸结合。`;
+  }, [chartData]);
 
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="mx-auto max-w-2xl px-6 pt-10">
-        <PageHeader
-          eyebrow="Review"
-          title="修行洞察"
-          description="回顾过往的积累，见证一点一滴的改变。"
-        />
+    <div className="font-sans antialiased min-h-screen pb-20">
+      {/* Navigation */}
+      <Navigation />
 
-        {/* ... (Today's Snapshot Section - Unchanged) ... */}
-        {/* ... (Summary Cards code remains the same but omitted here for brevity if replace_file_content cannot handle huge skips, but I will assume I am replacing the surrounding logic to support imports and state, so I will replace from imports down to return start, then jump to chart section) */}
-
-        {/* REPLACING WHOLE COMPONENT STRUCTURE TO BE SAFE WITH IMPORTS AND STATE */}
-        {/* Actually, the file is large. I will use multi-chunk replace effectively */}
-        
-        {/* ... (Today Section Skipped) ... */}
-         <div className="relative mt-8 overflow-hidden rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-6 shadow-sm transition-all duration-300">
-          <div className="relative z-10">
-            {/* Header Section */}
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-[color:var(--muted)]">
-                  今日修持总量
-                </p>
-                <p className="mt-2 font-serif text-3xl font-medium text-[color:var(--ink)]">
-                  {todaySnapshot.totalCount.toLocaleString()}
-                </p>
-              </div>
-
-              {/* Expand Toggle */}
-              {todaySnapshot.details.length > 0 && (
-                <button
-                  onClick={() => setIsSnapshotExpanded(!isSnapshotExpanded)}
-                  className="flex items-center gap-1 rounded-full border border-[color:var(--line)] bg-white/50 px-3 py-1.5 text-xs font-medium text-[color:var(--muted)] backdrop-blur-sm transition-colors hover:bg-white hover:text-[color:var(--ink)]"
-                >
-                  {isSnapshotExpanded ? "收起明细" : "查看明细"}
-                  <FontAwesomeIcon
-                    icon={isSnapshotExpanded ? faChevronUp : faChevronDown}
-                  />
-                </button>
-              )}
-            </div>
-
-            {/* Top Item Summary (Only shown when collapsed and has data) */}
-            {!isSnapshotExpanded && todaySnapshot.details.length > 0 && (
-              <div className="mt-4 flex items-center gap-2 border-t border-[color:var(--line)] pt-4">
-                <span className="text-xs text-[color:var(--muted)]">
-                  今日之最:
-                </span>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-2 w-2 rounded-full"
-                    style={{ backgroundColor: todaySnapshot.details[0].color }}
-                  />
-                  <span className="font-serif text-sm text-[color:var(--ink)]">
-                    {todaySnapshot.details[0].name}
-                  </span>
-                  <span className="text-xs text-[color:var(--muted)]">
-                    {todaySnapshot.details[0].amount.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Expanded List */}
-            {isSnapshotExpanded && (
-              <div className="mt-4 animate-fade-in border-t border-[color:var(--line)] pt-2">
-                <div className="max-h-60 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-[color:var(--line)]">
-                  {todaySnapshot.details.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between py-2 border-b border-[color:var(--line)]/50 last:border-0"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="h-2 w-2 rounded-full"
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="font-serif text-sm text-[color:var(--ink)]">
-                          {item.name}
-                        </span>
-                      </div>
-                      <span className="text-sm font-medium text-[color:var(--ink)]">
-                        {item.amount.toLocaleString()}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Empty State */}
-            {todaySnapshot.details.length === 0 && (
-              <p className="mt-4 text-xs text-[color:var(--muted)]">
-                今日暂无记录，随喜您的精进之心！
-              </p>
-            )}
+      <main className="max-w-7xl mx-auto px-8 pb-20">
+        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in">
+          <div className="flex flex-col gap-1">
+            <span className="text-[color:var(--primary)] font-bold tracking-widest text-xs uppercase opacity-80">Practice Review & Insights</span>
+            <h2 className="font-display text-5xl font-bold mb-2 text-[color:var(--ink)]">精进、回望、觉察</h2>
+            <p className="text-[color:var(--muted)] max-w-2xl text-lg">回顾修行的点滴，体悟心性的成长。</p>
           </div>
-        </div>
-
-        {/* Controls */}
-        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="font-serif text-lg font-medium text-[color:var(--ink)]">
-            历史回顾
-          </h3>
-          <div className="flex gap-2">
-            {/* Templates Filter (Multi-select) */}
-            <div className="relative" ref={filterRef}>
-                <button
-                    className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-                        isFilterOpen || selectedTemplateIds.length > 0
-                            ? "border-[color:var(--accent)] bg-[color:var(--surface)] text-[color:var(--ink)]"
-                            : "border-[color:var(--line)] bg-[color:var(--surface)] text-[color:var(--ink)]"
-                    }`}
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                >
-                    <FontAwesomeIcon icon={faLayerGroup} className={selectedTemplateIds.length > 0 ? "text-[color:var(--accent)]" : "text-[color:var(--muted)]"} />
-                    <span>
-                        {selectedTemplateIds.length === 0 
-                            ? "所有功课" 
-                            : `已选 ${selectedTemplateIds.length} 项`}
-                    </span>
-                    <FontAwesomeIcon icon={faChevronDown} className={`text-xs text-[color:var(--muted)] transition-transform ${isFilterOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {/* Dropdown Menu */}
-                {isFilterOpen && (
-                    <div className="absolute left-0 mt-2 w-56 origin-top-left overflow-hidden rounded-2xl border border-[color:var(--line)] bg-white shadow-xl animate-fade-in z-50">
-                       <div className="p-2">
-                           <button
-                               onClick={clearSelection}
-                               className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
-                                   selectedTemplateIds.length === 0
-                                     ? "bg-[color:var(--accent)] text-white font-medium" 
-                                     : "text-[color:var(--ink)] hover:bg-[color:var(--surface)]"
-                               }`}
-                           >
-                               <span>所有功课</span>
-                               {selectedTemplateIds.length === 0 && <FontAwesomeIcon icon={faCheck} />}
-                           </button>
-                           
-                           <div className="my-1 h-px bg-[color:var(--line)]/50" />
-                           
-                           <div className="max-h-60 overflow-y-auto">
-                               {templates.map((t) => {
-                                   const isSelected = selectedTemplateIds.includes(t.id);
-                                   return (
-                                       <button
-                                           key={t.id}
-                                           onClick={() => toggleTemplateSelection(t.id)}
-                                           className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface)]"
-                                       >
-                                           <div className="flex items-center gap-2">
-                                               <div 
-                                                    className={`h-3 w-3 rounded-full border ${isSelected ? "border-transparent" : "border-[color:var(--line)]"}`}
-                                                    style={{ backgroundColor: isSelected ? (t.color || "var(--accent)") : "transparent" }}
-                                               />
-                                               <span className={isSelected ? "font-medium" : ""}>{t.name}</span>
-                                           </div>
-                                           {isSelected && <FontAwesomeIcon icon={faCheck} className="text-[color:var(--accent)]" />}
-                                       </button>
-                                   );
-                               })}
-                           </div>
-                       </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Range Filter */}
-            <div className="relative">
-              <select
-                className="appearance-none rounded-xl border border-[color:var(--line)] bg-[color:var(--surface)] py-2 pl-4 pr-9 text-sm font-medium text-[color:var(--ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--ring)]"
-                value={rangeType}
-                onChange={(e) => setRangeType(e.target.value as DateRangeType)}
-              >
-                {rangeOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--muted)]">
-                ▼
-              </div>
-            </div>
+          {/* Range Selector Placeholder - Functional implementation can be ported later if needed */}
+          <div className="flex flex-wrap items-center gap-4">
+             <div className="glass-card px-2 py-1.5 rounded-2xl flex items-center gap-1 text-xs font-bold uppercase tracking-wider">
+                <button className="px-4 py-1.5 rounded-xl bg-[color:var(--primary)] text-white shadow-lg">周</button>
+                <button className="px-4 py-1.5 rounded-xl hover:bg-white/40 text-[color:var(--muted)]">月</button>
+                <button className="px-4 py-1.5 rounded-xl hover:bg-white/40 text-[color:var(--muted)]">年</button>
+             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Summary Cards */}
-        <div className="mt-6 grid grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5 relative overflow-hidden">
-             {/* Background Decoration for selected templates */}
-             {activeSelectedTemplates.length > 0 && (
-                 <div 
-                    className="absolute right-0 top-0 h-16 w-16 translate-x-1/3 -translate-y-1/3 rounded-full opacity-20 blur-xl"
-                    style={{ backgroundColor: activeSelectedTemplates[0].color || "var(--accent)" }}
-                 />
-             )}
+        <div className="grid grid-cols-12 gap-8">
+          {/* Left Column: Stats & Charts */}
+          <div className="col-span-12 lg:col-span-7 space-y-8 stagger">
             
-            <div className="relative z-10">
-                <div className="flex flex-wrap items-center gap-1.5 min-h-[1.25rem] mb-1">
-                    <span className="text-xs font-medium text-[color:var(--muted)]">累计修持</span>
-                    {activeSelectedTemplates.map((t) => (
-                      <span
-                        key={t.id}
-                        className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] text-[color:var(--ink)] whitespace-nowrap"
-                      >
-                        {t.name}
-                      </span>
-                    ))}
+            {/* Chart Section */}
+            <section className="glass-card p-8 rounded-3xl">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="font-display text-2xl font-bold text-[color:var(--ink)]">修行周度趋势</h3>
+                  <p className="text-xs text-[color:var(--muted)] mt-1 uppercase tracking-widest font-bold">Weekly Trend</p>
                 </div>
-                <p className="mt-1 font-serif text-2xl text-[color:var(--ink)]">
-                  {summary.totalCount.toLocaleString()}
-                </p>
-                {showTarget && targetStats && (
-                    <div className="mt-2 flex items-center gap-2 text-[10px] text-[color:var(--muted)]">
-                        <span>目标: {targetStats.periodTarget.toLocaleString()}</span>
-                        <span className={targetStats.gap >= 0 ? "text-green-600" : "text-red-500"}>
-                            {targetStats.gap >= 0 ? "+" : ""}{targetStats.gap.toLocaleString()}
-                        </span>
-                    </div>
-                )}
-            </div>
-          </div>
-          <div className="rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-5">
-            <p className="text-xs font-medium text-[color:var(--muted)] h-5 flex items-center">
-              精进天数
-            </p>
-            <p className="mt-1 font-serif text-2xl text-[color:var(--ink)]">
-              {summary.uniqueDays}{" "}
-              <span className="text-sm text-[color:var(--muted)]">天</span>
-            </p>
-          </div>
-        </div>
+              </div>
+              
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--line)" />
+                    <XAxis 
+                        dataKey="date" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{fontSize: 10, fill: 'var(--muted)', fontWeight: 'bold'}} 
+                        dy={10}
+                    />
+                    <Tooltip 
+                        contentStyle={{backgroundColor: 'var(--surface)', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-soft)'}}
+                        itemStyle={{color: 'var(--ink)', fontWeight: 'bold'}}
+                        cursor={{stroke: 'var(--primary)', strokeWidth: 1}}
+                    />
+                    <Area 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="var(--primary)" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorCount)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
 
-        {/* Trend Chart */}
-        <div className="mt-4">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h4 className="text-sm font-medium text-[color:var(--muted)] whitespace-nowrap">
-                趋势分析
-              </h4>
-              {activeSelectedTemplates.map((t) => (
-                  <div key={t.id} className="flex items-center gap-1.5 rounded-full border border-[color:var(--line)] bg-[color:var(--surface)] px-2 py-0.5 animate-fade-in">
-                      <div 
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: t.color || "var(--accent)" }}
-                      />
-                      <span className="text-xs font-medium text-[color:var(--ink)]">
-                          {t.name}
-                      </span>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <StatCard 
+                  icon={faCalendarAlt} 
+                  label="本月修行天数" 
+                  value={activeDays} 
+                  subValue="/ 30" 
+                  colorClass="bg-green-100 text-green-600"
+                  trend="Keep it up"
+               />
+               <StatCard 
+                  icon={faSpa} 
+                  label="累计修行总量" 
+                  value={totalCount > 10000 ? (totalCount / 10000).toFixed(1) + 'W' : totalCount} 
+                  subValue="次" 
+                  colorClass="bg-[color:var(--accent)] text-[color:var(--accent)]"
+               />
+            </div>
+
+            {/* Insight */}
+            <InsightCard text={insight} />
+          </div>
+
+          {/* Right Column: Journal List */}
+          <div className="col-span-12 lg:col-span-5 space-y-6 animate-fade-up" style={{animationDelay: '0.2s'}}>
+            <section className="flex flex-col h-full">
+               <div className="mb-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                     <h3 className="font-display text-2xl font-bold text-[color:var(--ink)]">修行随笔</h3>
+                     <span className="text-xs font-bold text-[color:var(--muted)] uppercase tracking-widest">{logs.length} 篇记录</span>
                   </div>
-              ))}
-            </div>
+                  <div className="relative group">
+                     <FontAwesomeIcon icon={faSearch} className="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--muted)]" />
+                     <input 
+                        className="w-full bg-white/40 border-[color:var(--line)] rounded-2xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-[color:var(--primary)] placeholder-[color:var(--muted)]/50 text-sm backdrop-blur-md transition-all focus:bg-white/60" 
+                        placeholder="搜索随笔或感悟..." 
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                     />
+                  </div>
+               </div>
 
-            {targetStats && (
-                <button
-                    onClick={() => setShowTarget(!showTarget)}
-                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                        showTarget
-                            ? "border-[color:var(--accent)] bg-[color:var(--accent)] text-white"
-                            : "border-[color:var(--line)] bg-white text-[color:var(--muted)] hover:text-[color:var(--ink)]"
-                    }`}
-                >
-                    <FontAwesomeIcon icon={faBullseye} />
-                    {showTarget ? "隐藏目标" : "显示目标"}
-                </button>
-            )}
-          </div>
-          <div className="h-[500px] w-full rounded-3xl border border-[color:var(--line)] bg-white p-6 shadow-sm transition-all hover:shadow-md">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={chartData}
-                margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
-              >
-                <defs>
-                  {templates.map((t) => (
-                    <linearGradient
-                      key={t.id}
-                      id={`color-${t.id}`}
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor={t.color || "#e0b090"}
-                        stopOpacity={0.3}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={t.color || "#e0b090"}
-                        stopOpacity={0}
-                      />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <XAxis
-                  dataKey="dateKey"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11, fill: "var(--muted)" }}
-                  minTickGap={30}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11, fill: "var(--muted)" }}
-                  width={30}
-                />
-                <Tooltip
-                  cursor={{
-                    stroke: "var(--muted)",
-                    strokeWidth: 1,
-                    strokeDasharray: "4 4",
-                  }}
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      // Start with the total (if available in payload from an invisible line, or calc it)
-                      const areas = payload.filter((p) => p.dataKey !== "targetLine");
-                      const total = areas.reduce(
-                        (sum, entry) => sum + (entry.value as number),
-                        0,
-                      );
-
-                      // Sort areas by value
-                      const sortedAreas = [...areas].sort(
-                        (a, b) => (b.value as number) - (a.value as number),
-                      );
-
-                      return (
-                        <div className="rounded-xl border border-[color:var(--line)] bg-white p-3 shadow-lg">
-                          <p className="mb-2 text-xs font-medium text-[color:var(--muted)]">
-                            {label}
-                          </p>
-                          {sortedAreas.map((entry: any) => (
-                            <div
-                              key={entry.name}
-                              className="flex items-center justify-between gap-4 text-xs"
-                            >
-                              <span style={{ color: entry.color }}>
-                                {entry.name}
-                              </span>
-                              <span
-                                style={{ color: entry.color }}
-                                className="mt-1 font-semibold text-[color:var(--ink)]"
-                              >
-                                {entry.value}
-                              </span>
-                            </div>
-                          ))}
-                          
-                           {showTarget && targetStats && (
-                                <div className="mt-2 flex items-center justify-between gap-4 text-xs text-[color:var(--muted)]">
-                                    <span>日课目标:</span>
-                                    <span>{targetStats?.dailyTarget}</span>
-                                </div>
-                           )}
-
-                          <div className="my-2 h-px bg-[color:var(--line)]" />
-                          <div className="flex items-center justify-between gap-4 text-xs font-bold">
-                            <span className="text-[color:var(--muted)]">
-                              总计:
-                            </span>
-                            <span className="text-[color:var(--ink)]">
-                              {total}
-                            </span>
+               <div className="space-y-4 custom-scrollbar overflow-y-auto max-h-[700px] pr-2">
+                  {/* Journal List */}
+                  {logs
+                    .filter(log => log.content.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((log) => (
+                      <article key={log.id} className="glass-card p-6 rounded-3xl transition-all hover:bg-white/60 cursor-pointer">
+                          <div className="flex justify-between items-start mb-3">
+                              <span className="px-3 py-1 rounded-full bg-[color:var(--primary)]/10 text-[color:var(--primary)] text-[10px] font-bold uppercase tracking-wider">日志</span>
+                              <time className="text-[10px] text-[color:var(--muted)] font-bold uppercase tracking-wider">{log.logDate}</time>
                           </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                {templates.map((t) => (
-                  <Area
-                    key={t.id}
-                    type="monotone"
-                    dataKey={t.name}
-                    stackId="1" // Stack for total height
-                    stroke={t.color || "#e0b090"}
-                    fill={`url(#color-${t.id})`}
-                    strokeWidth={2}
-                    fillOpacity={0.8}
-                    animationDuration={1000}
-                    activeDot={{ r: 4, strokeWidth: 0 }}
-                  />
-                ))}
-              </AreaChart>
-            </ResponsiveContainer>
+                          <p className="text-sm text-[color:var(--ink)]/80 leading-relaxed line-clamp-3 font-medium">
+                              {log.content}
+                          </p>
+                      </article>
+                  ))}
+                  
+                  {logs.length === 0 && (
+                      <div className="p-8 text-center text-[color:var(--muted)] text-sm">
+                          暂无随笔，记录下第一篇吧。
+                      </div>
+                  )}
+
+                  {/* Add New / Editor Toggle */}
+                  {showEditor ? (
+                      <div className="glass-card p-6 rounded-3xl animate-fade-in">
+                          <h4 className="font-bold text-lg mb-4 text-[color:var(--ink)]">记录新随笔</h4>
+                          <JournalEditor />
+                          <button 
+                            onClick={() => setShowEditor(false)}
+                            className="mt-4 text-xs text-[color:var(--muted)] hover:underline"
+                          >
+                              收起
+                          </button>
+                      </div>
+                  ) : (
+                    <button 
+                        onClick={() => setShowEditor(true)}
+                        className="mt-8 w-full py-4 bg-[color:var(--primary)] text-white rounded-3xl font-bold flex items-center justify-center gap-2 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                        <FontAwesomeIcon icon={faPenFancy} />
+                        记录新的随笔
+                    </button>
+                  )}
+               </div>
+            </section>
           </div>
         </div>
 
-        {/* Daily Journal */}
-        <div className="mt-8">
-            <JournalEditor />
-        </div>
-
-        {/* Dedication Section */}
-        <div className="mt-10 mb-8">
-          <h4 className="mb-3 text-sm font-medium text-[color:var(--muted)]">
-            回向文
-          </h4>
-          <textarea
-            className="w-full rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--muted)]/50 focus:border-[color:var(--accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--accent)]"
-            rows={4}
-            placeholder="愿以此功德，普及于一切..."
-            value={preferences?.dedicationText || ""}
-            onChange={(e) => updateDedication(e.target.value)}
-          />
-          <p className="mt-2 text-xs text-[color:var(--muted)] text-right">
-            自动保存
-          </p>
-        </div>
-      </div>
+        <footer className="mt-20 glass-card p-10 rounded-3xl text-center">
+            <h4 className="text-[color:var(--muted)] text-[10px] font-bold tracking-[0.6em] uppercase mb-6">Witnessing Growth</h4>
+            <p className="font-display text-2xl md:text-3xl text-[color:var(--ink)]/80 italic mb-4 max-w-3xl mx-auto leading-relaxed">
+                 “不积跬步，无以至千里；不积小流，无以成江海。”
+            </p>
+        </footer>
+      </main>
     </div>
   );
 }

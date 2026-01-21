@@ -98,3 +98,24 @@ export async function updateTemplate(
 
   return mapToTemplate(data);
 }
+
+export async function deleteTemplate(id: string): Promise<boolean> {
+  const supabase = await createClient();
+  
+  // We might want to cascade delete entries or just keep them?
+  // Ideally, Supabase foreign keys handle cascade, or we soft delete.
+  // The user requirement implies "permanent delete".
+  // Let's assuming hard delete for now as per design "Permanent".
+  
+  const { error } = await supabase
+    .from("templates")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting template:", error);
+    return false;
+  }
+
+  return true;
+}
