@@ -27,7 +27,7 @@ export default function PracticeCard({ template, entries, onRecord, selectedDate
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative z-10">
         <div className="flex-grow">
             <div className="flex items-center gap-3 mb-4">
-                <span className={`px-3 py-1 rounded-lg text-sm font-black uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-green-700' : 'bg-[color:var(--primary)]/10 text-[color:var(--primary)]'}`}>
+                <span className={`px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest ${isCompleted ? 'bg-green-100 text-green-700' : 'bg-[color:var(--primary)]/10 text-[color:var(--primary)]'}`}>
                     {isCompleted ? 'Completed' : 'Ongoing'}
                 </span>
                 {template.category && (
