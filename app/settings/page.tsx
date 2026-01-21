@@ -1,31 +1,24 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   faPlus,
-  faPen,
   faPauseCircle,
-  faTrash,
-  faPlayCircle,
   faBookOpen,
-  faHandHoldingHeart,
   faSmile,
   faPenToSquare,
   faHourglassHalf,
-  faMagic,
-  faCheck,
   faXmark,
-  faLayerGroup,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ConfirmationModal from "../components/confirmation-modal";
-import { unitLabels, type Template, type Unit } from "@/lib/storage";
+import { type Template, type Unit } from "@/lib/storage";
 import { useSystemData } from "@/hooks/use-system-data";
 import { todayISO } from "@/lib/dates";
-import { sumEntriesForDate } from "@/lib/records";
 import TemplateCard from "./components/template-card";
 import Navigation from "../components/navigation";
+import Footer from "../components/footer";
 
 const unitOptions: { value: Unit; label: string }[] = [
   { value: "times", label: "遍 (次数)" },
@@ -326,55 +319,59 @@ export default function SettingsPage() {
           </div>
         )}
 
-            {/* Active Templates Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger mb-16 mt-10">
-                {/* Create New Card */}
-                {!isFormOpen && (
-                    <div 
-                        onClick={() => setIsFormOpen(true)}
-                        className="glass-card p-8 rounded-3xl flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[color:var(--accent)] hover:bg-white/60 transition-all group min-h-[320px] border-dashed border-2 border-[color:var(--line)]"
-                    >
-                        <div className="w-20 h-20 rounded-full bg-[color:var(--accent)]/10 flex items-center justify-center group-hover:scale-110 transition-transform text-[color:var(--accent)]">
-                             <FontAwesomeIcon icon={faPlus} className="text-3xl" />
-                        </div>
-                        <div className="text-center">
-                            <h3 className="font-display text-2xl font-bold text-[color:var(--accent)] mb-1">创建新功课</h3>
-                            <p className="text-[color:var(--muted)] text-sm">定义新的修行目标与计量单位</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Active Template Cards */}
-                {activeTemplates.map(template => (
-                    <TemplateCard 
-                        key={template.id}
-                        template={template}
-                        entries={entries}
-                        onEdit={handleEdit}
-                        onToggleActive={(id) => setArchiveConfirmId(id)}
-                    />
-                ))}
+        {/* Active Templates Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger mb-16 mt-10">
+          {/* Create New Card */}
+          {!isFormOpen && (
+            <div
+              onClick={() => setIsFormOpen(true)}
+              className="glass-card p-8 rounded-3xl flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[color:var(--accent)] hover:bg-white/60 transition-all group min-h-[320px] border-dashed border-2 border-[color:var(--line)]"
+            >
+              <div className="w-20 h-20 rounded-full bg-[color:var(--accent)]/10 flex items-center justify-center group-hover:scale-110 transition-transform text-[color:var(--accent)]">
+                <FontAwesomeIcon icon={faPlus} className="text-3xl" />
+              </div>
+              <div className="text-center">
+                <h3 className="font-display text-2xl font-bold text-[color:var(--accent)] mb-1">
+                  创建新功课
+                </h3>
+                <p className="text-[color:var(--muted)] text-sm">
+                  定义新的修行目标与计量单位
+                </p>
+              </div>
             </div>
+          )}
 
-            {/* Paused Templates Section */}
-            {pausedTemplates.length > 0 && (
-                <section className="mb-16">
-                    <h4 className="font-display text-xl font-bold mb-6 text-[color:var(--muted)] flex items-center gap-2">
-                        <FontAwesomeIcon icon={faPauseCircle} /> 已暂停 / 归档
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger">
-                        {pausedTemplates.map(template => (
-                            <TemplateCard 
-                                key={template.id}
-                                template={template}
-                                entries={entries}
-                                onToggleActive={(id) => setArchiveConfirmId(id)}
-                                onDelete={(id) => setDeleteConfirmId(id)}
-                            />
-                        ))}
-                    </div>
-                </section>
-            )}
+          {/* Active Template Cards */}
+          {activeTemplates.map((template) => (
+            <TemplateCard
+              key={template.id}
+              template={template}
+              entries={entries}
+              onEdit={handleEdit}
+              onToggleActive={(id) => setArchiveConfirmId(id)}
+            />
+          ))}
+        </div>
+
+        {/* Paused Templates Section */}
+        {pausedTemplates.length > 0 && (
+          <section className="mb-16">
+            <h4 className="font-display text-xl font-bold mb-6 text-[color:var(--muted)] flex items-center gap-2">
+              <FontAwesomeIcon icon={faPauseCircle} /> 已暂停 / 归档
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger">
+              {pausedTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  entries={entries}
+                  onToggleActive={(id) => setArchiveConfirmId(id)}
+                  onDelete={(id) => setDeleteConfirmId(id)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-20">
           <h4 className="font-display text-2xl font-bold mb-8 text-[color:var(--ink)]">
@@ -416,14 +413,11 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <footer className="mt-24 glass-card p-8 rounded-3xl text-center border-[color:var(--accent)]/20 border">
-          <h4 className="text-[color:var(--muted)] text-xs font-bold tracking-[0.3em] uppercase mb-4">
-            法义提示
-          </h4>
-          <p className="font-display text-xl md:text-2xl text-[color:var(--ink)]/80 italic">
-            “勿轻小罪，以为无殃。水滴虽微，渐盈大器。”
-          </p>
-        </footer>
+        <Footer
+          className="mt-24 border-[color:var(--accent)]/20 border"
+          title="法义提示"
+          quote="“勿轻小罪，以为无殃。水滴虽微，渐盈大器。”"
+        />
       </main>
 
       <ConfirmationModal
