@@ -208,7 +208,7 @@ export default function Home() {
           <div className="col-span-12 lg:col-span-4 space-y-8">
             {/* Summary Section */}
             <section className="glass-card p-8 rounded-[2rem]">
-              <h4 className="font-black  text-[color:var(--muted)] uppercase tracking-[0.3em] mb-8">
+              <h4 className="font-black text-sm text-[color:var(--muted)] uppercase tracking-[0.3em] mb-8">
                 Summary • 每日小结
               </h4>
               <div className="flex flex-col items-center text-center">

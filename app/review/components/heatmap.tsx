@@ -75,22 +75,35 @@ export default function Heatmap({ entries }: HeatmapProps) {
     }
   };
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  // return (
+  // Collapse State
+
   return (
-    <section className="glass-card p-8 rounded-[2rem] flex flex-col md:flex-row gap-8">
-      {/* Main Heatmap Area */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="font-display text-2xl font-bold text-[color:var(--ink)]">
-               {selectedYear} 年修行热力图
-            </h3>
-            <p className="text-sm text-[color:var(--muted)] mt-1">
-              {daysInYear.length} days of practice visualization
-            </p>
+    <section className="glass-card p-8 rounded-[2rem] flex flex-col transition-all duration-300">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div>
+                <h3 className="font-display text-2xl font-bold text-[color:var(--ink)]">
+                {selectedYear} 年修行热力图
+                </h3>
+                <p className={`text-sm text-[color:var(--muted)] mt-1 transition-opacity ${isCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
+                {daysInYear.length} days of practice visualization
+                </p>
+            </div>
+            <button 
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[color:var(--surface)] text-[color:var(--muted)] hover:text-[color:var(--primary)] transition-colors self-start mt-1"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                </svg>
+            </button>
           </div>
           
-          {/* Legend */}
-          <div className="flex items-center gap-2 text-[10px] text-[color:var(--muted)] uppercase font-bold tracking-tighter hidden sm:flex">
+          {/* Legend - Hide when collapsed */}
+          <div className={`flex items-center gap-2 text-[10px] text-[color:var(--muted)] uppercase font-bold tracking-tighter hidden sm:flex transition-opacity ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
             <span>Less</span>
             <div className={`w-3 h-3 rounded-sm ${getColorClass(0)}`}></div>
             <div className={`w-3 h-3 rounded-sm ${getColorClass(1)}`}></div>
@@ -100,6 +113,12 @@ export default function Heatmap({ entries }: HeatmapProps) {
             <span>More</span>
           </div>
         </div>
+
+      {/* Collapsible Content Wrapper */}
+      <div className={`flex flex-col md:flex-row gap-8 transition-all duration-300 overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[500px] opacity-100'}`}>
+      
+      {/* Main Heatmap Area */}
+      <div className="flex-1 min-w-0">
 
         <div className="overflow-x-auto pb-4 custom-scrollbar">
             {/* Grid Container */}
@@ -176,6 +195,7 @@ export default function Heatmap({ entries }: HeatmapProps) {
                  {year}
              </button>
          ))}
+      </div>
       </div>
     </section>
   );

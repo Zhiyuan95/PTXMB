@@ -12,7 +12,9 @@ interface StatsGridProps {
   activeDays: number;
   totalCount: number;
   totalDuration: number;
-  focusScore?: number; // Placeholder for now
+  focusScore?: number;
+  period?: string;
+  totalDays?: number;
 }
 
 export default function StatsGrid({
@@ -20,13 +22,15 @@ export default function StatsGrid({
   totalCount,
   totalDuration,
   focusScore = 8.4,
+  period = "本月",
+  totalDays = 30,
 }: StatsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 stagger">
       <StatCard
-        label="本月修行天数"
+        label={`${period}修行天数`}
         value={activeDays}
-        subValue="/ 30"
+        subValue={`/ ${totalDays}`}
         icon={faMagic}
         iconColorClass="text-[color:var(--primary)]"
         bottomText="Keep Going"

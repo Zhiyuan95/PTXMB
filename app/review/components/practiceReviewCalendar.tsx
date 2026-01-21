@@ -62,6 +62,9 @@ export default function PracticeReviewCalendar({
     };
   };
 
+  // Collapse State
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <div className="space-y-8 relative">
       <PracticeDetailModal 
@@ -72,12 +75,25 @@ export default function PracticeReviewCalendar({
       />
 
       {/* Calendar Section */}
-      <section className="glass-card p-8 rounded-[2rem]">
+      <section className="glass-card p-8 rounded-[2rem] transition-all duration-300">
         <div className="flex items-center justify-between mb-8">
-          <h3 className="font-display text-2xl font-bold text-[color:var(--ink)]">
-            {format(currentDate, "yyyy年 M月")} 修行日历
-          </h3>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-4">
+             <h3 className="font-display text-2xl font-bold text-[color:var(--ink)]">
+                {format(currentDate, "yyyy年 M月")} 修行日历
+             </h3>
+             <button 
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[color:var(--surface)] text-[color:var(--muted)] hover:text-[color:var(--primary)] transition-colors"
+                title={isCollapsed ? "Expand" : "Collapse"}
+             >
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                 </svg>
+             </button>
+          </div>
+          
+          {/* Controls - Hide when collapsed for cleaner look, or keep? Keep them. */}
+          <div className={`flex gap-2 transition-all duration-300 ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             <button
               onClick={handlePrevMonth}
               className="w-8 h-8 flex items-center justify-center hover:bg-black/5 rounded-lg transition-colors text-[color:var(--ink)]"
@@ -93,20 +109,21 @@ export default function PracticeReviewCalendar({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-4 mb-4">
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => (
-            <div
-              key={d}
-              className={`text-center text-xs font-bold uppercase tracking-widest ${
-                i >= 5
-                  ? "text-[color:var(--accent)]"
-                  : "text-[color:var(--muted)]"
-              }`}
-            >
-              {d.charAt(0)}
+        <div className={`transition-all duration-500 overflow-hidden ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[1000px] opacity-100'}`}>
+            <div className="grid grid-cols-7 gap-4 mb-4">
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => (
+                <div
+                key={d}
+                className={`text-center text-xs font-bold uppercase tracking-widest ${
+                    i >= 5
+                    ? "text-[color:var(--accent)]"
+                    : "text-[color:var(--muted)]"
+                }`}
+                >
+                {d.charAt(0)}
+                </div>
+            ))}
             </div>
-          ))}
-        </div>
 
         <div className="grid grid-cols-7 gap-4">
           {/* Padding Days */}
@@ -176,6 +193,7 @@ export default function PracticeReviewCalendar({
               </div>
             );
           })}
+        </div>
         </div>
       </section>
     </div>
