@@ -241,7 +241,7 @@ export default function ReviewPage() {
               </button>
             </section>
 
-            <StreakCard streak={streak} />
+            {/* <StreakCard streak={streak} /> */}
           </div>
         </div>
 

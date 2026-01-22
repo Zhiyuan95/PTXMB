@@ -4,21 +4,36 @@ import { useState, useEffect, useRef } from "react";
 import { getJournalLog, upsertJournalLog } from "@/lib/actions/journal";
 import { todayISO } from "@/lib/dates";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenNib, faCheckCircle, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPenNib,
+  faCheckCircle,
+  faSpinner,
+  faChevronLeft,
+} from "@fortawesome/free-solid-svg-icons";
 
-export default function JournalEditor() {
+export default function JournalEditor({
+  date,
+  onClose,
+}: {
+  date?: string;
+  onClose?: () => void;
+}) {
   const [content, setContent] = useState("");
-  const [status, setStatus] = useState<"loading" | "saved" | "saving" | "error">("loading");
-  const today = todayISO();
+  const [status, setStatus] = useState<
+    "loading" | "saved" | "saving" | "error"
+  >("loading");
+  const activeDate = date || todayISO();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load initial data
   useEffect(() => {
     async function load() {
       try {
-        const log = await getJournalLog(today);
+        const log = await getJournalLog(activeDate);
         if (log) {
           setContent(log.content);
+        } else {
+          setContent(""); // Reset content if no log found for this date
         }
         setStatus("saved");
       } catch (error) {
@@ -27,7 +42,7 @@ export default function JournalEditor() {
       }
     }
     load();
-  }, [today]);
+  }, [activeDate]);
 
   // Handle auto-save
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -41,7 +56,7 @@ export default function JournalEditor() {
 
     timeoutRef.current = setTimeout(async () => {
       try {
-        await upsertJournalLog(today, newContent);
+        await upsertJournalLog(activeDate, newContent);
         setStatus("saved");
       } catch (error) {
         console.error("Failed to save journal", error);
@@ -51,38 +66,51 @@ export default function JournalEditor() {
   };
 
   return (
-    <div className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+    <div className="rounded-3xl border border-[color:var(--line)] bg-[color:var(--surface)] p-6 shadow-sm transition-all duration-300 hover:shadow-md h-full flex flex-col">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-serif text-lg font-medium text-[color:var(--ink)] flex items-center gap-2">
-            <FontAwesomeIcon icon={faPenNib} className="text-sm text-[color:var(--muted)]" />
-            修行日志
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="mr-1 hover:text-[color:var(--primary)] transition-colors"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+          )}
+          <FontAwesomeIcon
+            icon={faPenNib}
+            className="text-sm text-[color:var(--muted)]"
+          />
+          {date ? "编辑随笔" : "修行日志"}
         </h3>
         <div className="text-xs font-medium">
-            {status === "loading" && <span className="text-[color:var(--muted)]">加载中...</span>}
-            {status === "saving" && (
-                <span className="flex items-center gap-1.5 text-[color:var(--accent)]">
-                    <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                    保存中
-                </span>
-            )}
-            {status === "saved" && (
-                <span className="flex items-center gap-1.5 text-green-600 animate-fade-in">
-                    <FontAwesomeIcon icon={faCheckCircle} />
-                    已保存
-                </span>
-            )}
-            {status === "error" && <span className="text-red-500">保存失败</span>}
+          {status === "loading" && (
+            <span className="text-[color:var(--muted)]">加载中...</span>
+          )}
+          {status === "saving" && (
+            <span className="flex items-center gap-1.5 text-[color:var(--accent)]">
+              <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+              保存中
+            </span>
+          )}
+          {status === "saved" && (
+            <span className="flex items-center gap-1.5 text-green-600 animate-fade-in">
+              <FontAwesomeIcon icon={faCheckCircle} />
+              已保存
+            </span>
+          )}
+          {status === "error" && <span className="text-red-500">保存失败</span>}
         </div>
       </div>
-      
+
       <textarea
         value={content}
         onChange={handleChange}
         placeholder="记录今日的修行感悟、心境变化，或是对未来的期许..."
-        className="w-full h-32 resize-none rounded-xl border border-[color:var(--line)] bg-white/50 p-4 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--muted)]/60 focus:bg-white focus:border-[color:var(--accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--accent)] transition-all"
+        className="w-full flex-1 min-h-[12rem] resize-none rounded-xl border border-[color:var(--line)] bg-white/50 p-4 text-base text-[color:var(--ink)] placeholder:text-[color:var(--muted)]/60 focus:bg-white focus:border-[color:var(--accent)] focus:outline-none focus:ring-1 focus:ring-[color:var(--accent)] transition-all leading-relaxed"
       />
-      <p className="mt-2 text-xs text-[color:var(--muted)] text-right">
-        {today} · 仅对自己可见
+      <p className="mt-4 text-xs text-[color:var(--muted)] text-right font-medium opacity-60">
+        {activeDate} · 仅对自己可见
       </p>
     </div>
   );
