@@ -10,7 +10,9 @@ import {
   useCallback,
   ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 interface AuthContextType {
   user: User | null;
@@ -40,16 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
   const router = useRouter();
+  const pathname = usePathname();
 
-  // 退出登录
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    router.refresh(); // 刷新页面以清除缓存数据
+    router.replace("/auth"); // 登出后强制去登录页
+    router.refresh();
   }, [supabase, router]);
 
-  // 邮箱登录
   const signInWithEmail = useCallback(
     async (email: string, password: string) => {
       const { error } = await supabase.auth.signInWithPassword({
@@ -61,7 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [supabase],
   );
 
-  // 注册（带名字）
   const signUpWithEmail = useCallback(
     async (email: string, password: string, name: string) => {
       const { error } = await supabase.auth.signUp({
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           data: {
-            full_name: name, // 关键：这里的数据会被存入 raw_user_meta_data
+            full_name: name,
           },
         },
       });
@@ -79,29 +80,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    // 检查活动会话
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      // 删除：如果无会话，不再自动匿名登录，而是保持未登录状态
-      setIsLoading(false);
-    });
+    const checkAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-    // Listen for auth changes
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        // --- 核心改动：路由守卫逻辑 ---
+        // 如果没有 Session 且当前不在 /auth 页面，强制跳转
+        if (!session && pathname !== "/auth") {
+          router.replace("/auth");
+        }
+        // 如果已经有 Session 但用户还在 /auth 页面（例如手动输入网址），跳转回首页
+        else if (session && pathname === "/auth") {
+          router.replace("/");
+        }
+      } catch (error) {
+        console.error("Auth check failed", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setIsLoading(false);
-      // 当用户状态改变时（登录/退出），刷新页面
-      if (_event === "SIGNED_IN" || _event === "SIGNED_OUT") {
+
+      if (_event === "SIGNED_OUT") {
+        router.replace("/auth");
+      } else if (_event === "SIGNED_IN") {
         router.refresh();
+        if (pathname === "/auth") router.replace("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase, router]);
+  }, [supabase, router, pathname]);
+
+  // --- 核心改动：全屏 Loading ---
+  // 在检查完身份之前，不渲染任何子组件，防止内容闪烁
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[color:var(--background)]">
+        <div className="flex flex-col items-center gap-4">
+          <FontAwesomeIcon
+            icon={faSpinner}
+            spin
+            className="text-3xl text-[color:var(--primary)]"
+          />
+          <p className="text-[color:var(--muted)] text-sm tracking-widest uppercase">
+            Loading
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider
@@ -114,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUpWithEmail,
       }}
     >
+      {/* 只有在非 /auth 页面且有用户，或者在 /auth 页面时才渲染内容 */}
       {children}
     </AuthContext.Provider>
   );
