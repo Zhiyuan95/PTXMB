@@ -1,9 +1,14 @@
 import { format, isToday } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes, faFire, faQuoteLeft } from "@fortawesome/free-solid-svg-icons";
+import {
+  faTimes,
+  faQuoteLeft,
+  faPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { type Entry, type Template, unitLabels } from "@/lib/storage";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 interface PracticeDetailModalProps {
   selectedDate: Date | null;
@@ -31,8 +36,6 @@ export default function PracticeDetailModal({
     }
   }, [selectedDate]);
 
-  if (!selectedDate && !isModalOpen) return null;
-
   const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
   const dayEntries = selectedDate
     ? entries.filter((e) => e.entryDate === dateStr)
@@ -48,6 +51,8 @@ export default function PracticeDetailModal({
     },
     {} as Record<string, number>,
   );
+
+  if (!selectedDate && !isModalOpen) return null;
 
   return (
     <div
@@ -120,9 +125,9 @@ export default function PracticeDetailModal({
                 >
                   <div className="text-2xl font-display font-bold text-[color:var(--ink)]">
                     {total.toLocaleString()}{" "}
-                   <span className="text-sm text-[color:var(--muted)] uppercase tracking-wider font-bold">
-                    {unitLabels[unit as keyof typeof unitLabels] || unit}
-                   </span>
+                    <span className="text-sm text-[color:var(--muted)] uppercase tracking-wider font-bold">
+                      {unitLabels[unit as keyof typeof unitLabels] || unit}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -139,9 +144,16 @@ export default function PracticeDetailModal({
                     className="text-[color:var(--muted)]/50 text-xl"
                   />
                 </div>
-                <p className="text-[color:var(--muted)] text-sm">
+                <p className="text-[color:var(--muted)] text-sm mb-6">
                   此日暂无记录
                 </p>
+                <Link
+                  href={`/?date=${dateStr}`}
+                  className="px-6 py-2 rounded-full bg-[color:var(--primary)]/10 text-[color:var(--primary)] text-sm font-bold hover:bg-[color:var(--primary)] hover:text-white transition-all flex items-center gap-2 mx-auto inline-flex"
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                  前往补录
+                </Link>
               </div>
             ) : (
               dayEntries.map((entry, idx) => {
@@ -187,22 +199,6 @@ export default function PracticeDetailModal({
               })
             )}
           </div>
-
-          {/* Footer */}
-          {/* {dayEntries.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-[color:var(--line)]/50 flex justify-between items-center">
-              <span className="text-xs font-bold text-[color:var(--muted)] uppercase tracking-wider">
-                Summary
-              </span>
-              <span className="flex items-center gap-2 text-[color:var(--accent)] font-bold text-sm bg-[color:var(--accent)]/10 px-3 py-1 rounded-full">
-                <FontAwesomeIcon
-                  icon={faFire}
-                  className="animate-bounce-slow"
-                />
-                精进日
-              </span>
-            </div>
-          )} */}
         </div>
       </div>
     </div>

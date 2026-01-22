@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -21,8 +22,15 @@ import { upsertJournalLog, getJournalLog } from "@/lib/actions/journal";
 
 export default function Home() {
   const { templates, entries, addEntry } = useSystemData();
+  const searchParams = useSearchParams(); // Read URL params
   const dateInputRef = useRef<HTMLInputElement>(null);
-  const [selectedDate, setSelectedDate] = useState(todayISO());
+  
+  // Initialize with URL param 'date' if valid, else today
+  const initialDate = searchParams.get("date");
+  // Simple validation to check if it's a valid date string YYYY-MM-DD
+  const isValidDate = initialDate && /^\d{4}-\d{2}-\d{2}$/.test(initialDate);
+
+  const [selectedDate, setSelectedDate] = useState(isValidDate ? initialDate : todayISO());
   const [activeTemplate, setActiveTemplate] = useState<Template | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
