@@ -5,6 +5,7 @@ import {
   faTimes,
   faQuoteLeft,
   faPlus,
+  faPen,
 } from "@fortawesome/free-solid-svg-icons";
 import { type Entry, type Template, unitLabels } from "@/lib/storage";
 import { useState, useEffect } from "react";
@@ -135,6 +136,7 @@ export default function PracticeDetailModal({
           )}
 
           {/* List */}
+          {/* List */}
           <div className="space-y-3 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2 -mr-2">
             {dayEntries.length === 0 ? (
               <div className="py-12 text-center">
@@ -199,6 +201,19 @@ export default function PracticeDetailModal({
               })
             )}
           </div>
+
+          {/* Footer - Update Button (Fixed at bottom) */}
+          {dayEntries.length > 0 && (
+            <div className="pt-4 mt-4 border-t border-[color:var(--line)]/50 flex justify-center ">
+              <Link
+                href={`/?date=${dateStr}`}
+                className="px-6 py-2 rounded-full bg-[color:var(--surface)] text-[color:var(--muted)] text-sm font-bold hover:bg-[color:var(--primary)] hover:text-white transition-all flex items-center gap-2 border border-[color:var(--line)]"
+              >
+                <FontAwesomeIcon icon={faPen} />
+                更新修行记录
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
