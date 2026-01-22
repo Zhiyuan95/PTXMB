@@ -5,7 +5,7 @@ import { AuthProvider } from "./providers/auth-provider";
 import DataMigrator from "./components/data-migrator";
 
 export const metadata: Metadata = {
-  title: "修行记录",
+  title: "菩提心妙宝",
   description: "极简功课记录与复盘的数字化账本。",
 };
 

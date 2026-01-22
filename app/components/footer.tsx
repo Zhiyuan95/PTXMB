@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getDailyQuote, getRandomQuote, type Quote } from "@/lib/quotes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSyncAlt } from "@fortawesome/free-solid-svg-icons";
+import Link from "next/link";
 
 export interface FooterProps {
   title?: string;
@@ -35,8 +36,15 @@ export default function Footer({
 
   return (
     <footer className={`glass-card p-10 rounded-3xl text-center group relative ${className}`}>
-      <h4 className="text-[color:var(--muted)] text-[10px] font-bold tracking-[0.6em] uppercase mb-6">
-        {title}
+      <h4 className="text-[color:var(--muted)] text-[10px] font-bold tracking-[0.6em] uppercase mb-6 flex items-center justify-center gap-4">
+        <span>{title}</span>
+        <span className="w-1 h-1 rounded-full bg-[color:var(--muted)]/30"></span>
+        <Link 
+            href="/feedback" 
+            className="hover:text-[color:var(--primary)] transition-colors cursor-pointer"
+        >
+            意见反馈
+        </Link>
       </h4>
       <div className="relative max-w-3xl mx-auto">
         <p className="font-display text-2xl md:text-3xl text-[color:var(--ink)]/80 italic mb-4 leading-relaxed animate-fade-in key={quote.content}">

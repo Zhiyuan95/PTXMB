@@ -65,6 +65,15 @@ export default function Navigation() {
               管理
             </button>
           </Link>
+          <Link href="/feedback">
+            <button
+              className={`px-6 py-2 rounded-xl transition-all text-md ${
+                isActive("/feedback") ? activeClass : inactiveClass
+              }`}
+            >
+              反馈
+            </button>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">
