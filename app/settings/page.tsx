@@ -416,7 +416,6 @@ export default function SettingsPage() {
         <Footer
           className="mt-24 border-[color:var(--accent)]/20 border"
           title="法义提示"
-          quote="“勿轻小罪，以为无殃。水滴虽微，渐盈大器。”"
         />
       </main>
 
