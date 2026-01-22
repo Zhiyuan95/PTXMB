@@ -22,7 +22,6 @@ import { upsertJournalLog, getJournalLog } from "@/lib/actions/journal";
 function HomeContent() {
   const { templates, entries, addEntry } = useSystemData();
   const searchParams = useSearchParams(); // Read URL params
-  const dateInputRef = useRef<HTMLInputElement>(null);
   
   // Initialize with URL param 'date' if valid, else today
   const initialDate = searchParams.get("date");
@@ -156,7 +155,6 @@ function HomeContent() {
           <div className="col-span-12 lg:col-span-8 space-y-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               {/* Calendar / Date Picker */}
-              {/* Calendar / Date Picker */}
               <div className="flex items-center gap-3">
                 <div className="glass-card px-5 py-2.5 rounded-xl text-sm font-bold text-[color:var(--ink)] shadow-sm">
                   {dateDisplay}{" "}
@@ -168,23 +166,25 @@ function HomeContent() {
                 </div>
 
                 <div className="relative">
-                  <button
-                    onClick={() => dateInputRef.current?.showPicker()}
-                    className="w-10 h-10 rounded-xl bg-[color:var(--surface)] border border-[color:var(--line)] hover:bg-white/80 hover:scale-105 active:scale-95 transition-all flex items-center justify-center text-[color:var(--primary)] shadow-sm cursor-pointer"
-                    title="选择日期"
+                  {/* 图标按钮：仅作视觉展示，不处理点击 */}
+                  <div
+                    className="w-10 h-10 rounded-xl bg-[color:var(--surface)] border border-[color:var(--line)] hover:bg-white/80 transition-all flex items-center justify-center text-[color:var(--primary)] shadow-sm"
                   >
                     <FontAwesomeIcon icon={faCalendarAlt} className="text-lg" />
-                  </button>
+                  </div>
+                  
+                  {/* 透明 Input：覆盖在按钮上方，处理真实点击 */}
                   <input
-                    ref={dateInputRef}
                     id="date-picker-input"
                     type="date"
                     value={selectedDate}
                     onChange={handleDateChange}
-                    className="absolute opacity-0 pointer-events-none w-0 h-0 overflow-hidden text-[0px]"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    title="选择日期"
                   />
                 </div>
               </div>
+              {/* --- 修改结束 --- */}
 
               {/* Expanding Search Input */}
               <div
