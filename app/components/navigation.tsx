@@ -3,12 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/app/providers/auth-provider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVihara, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 
 export default function Navigation() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true;
@@ -82,12 +84,18 @@ export default function Navigation() {
 
         {/* Desktop User Section */}
         <div className="hidden md:flex items-center gap-4">
-          <div className="relative group cursor-pointer">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[color:var(--primary)] to-[color:var(--accent)] flex items-center justify-center text-white font-bold text-sm shadow-md">
-              User
+          <Link href="/auth">
+            <div className="relative group cursor-pointer hover:scale-105 transition-transform">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md ${user?.is_anonymous ? "bg-stone-400" : "bg-gradient-to-br from-[color:var(--primary)] to-[color:var(--accent)]"}`}
+              >
+                {user?.is_anonymous ? "?" : user?.email?.[0].toUpperCase()}
+              </div>
+              <div
+                className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full ${user?.is_anonymous ? "bg-gray-400" : "bg-green-500"}`}
+              ></div>
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-          </div>
+          </Link>
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -96,9 +104,9 @@ export default function Navigation() {
           className="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-[color:var(--ink)] hover:bg-white/40 transition-colors"
           aria-label="Toggle menu"
         >
-          <FontAwesomeIcon 
-            icon={isMobileMenuOpen ? faTimes : faBars} 
-            className="text-xl" 
+          <FontAwesomeIcon
+            icon={isMobileMenuOpen ? faTimes : faBars}
+            className="text-xl"
           />
         </button>
       </div>
@@ -148,18 +156,28 @@ export default function Navigation() {
 
           {/* User Section in Mobile Menu */}
           <div className="pt-4 border-t border-white/20">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/30">
-              <div className="relative">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[color:var(--primary)] to-[color:var(--accent)] flex items-center justify-center text-white font-bold text-sm shadow-md">
-                  User
+            <Link href="/auth" onClick={() => setIsMobileMenuOpen(false)}>
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/30 active:bg-white/50">
+                <div className="relative">
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md ${user?.is_anonymous ? "bg-stone-400" : "bg-gradient-to-br from-[color:var(--primary)] to-[color:var(--accent)]"}`}
+                  >
+                    {user?.is_anonymous ? "?" : user?.email?.[0].toUpperCase()}
+                  </div>
+                  <div
+                    className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white rounded-full ${user?.is_anonymous ? "bg-gray-400" : "bg-green-500"}`}
+                  ></div>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-[color:var(--ink)]">
+                    {user?.is_anonymous ? "游客 (点击登录)" : user?.email}
+                  </p>
+                  <p className="text-xs text-[color:var(--muted)]">
+                    {user?.is_anonymous ? "数据未同步" : "已连接云端"}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-[color:var(--ink)]">当前用户</p>
-                <p className="text-xs text-[color:var(--muted)]">在线</p>
-              </div>
-            </div>
+            </Link>
           </div>
         </div>
       )}
