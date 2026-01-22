@@ -1,4 +1,4 @@
-import { faChartLine, faLightbulb } from "@fortawesome/free-solid-svg-icons";
+import { faLightbulb } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export function InsightCard({ text }: { text: string }) {

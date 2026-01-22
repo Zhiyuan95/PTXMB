@@ -30,7 +30,7 @@ export function aggregateChartData(
   let days: Date[] = [];
   try {
       days = eachDayOfInterval({ start, end: dateRange.end });
-  } catch (e) {
+  } catch (_e) {
       // Fallback if dates are invalid
       days = [new Date()];
   }

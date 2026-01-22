@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   faPlus,
@@ -50,7 +50,7 @@ const emptyForm = {
   color: palette[0],
 };
 
-export default function SettingsPage() {
+function SettingsContent() {
   const {
     templates,
     entries,
@@ -136,8 +136,6 @@ export default function SettingsPage() {
 
   const activeTemplates = templates.filter((t) => t.isActive);
   const pausedTemplates = templates.filter((t) => !t.isActive);
-
-  const today = todayISO();
 
   return (
     <div className="min-h-screen pb-20 font-sans">
@@ -456,5 +454,13 @@ export default function SettingsPage() {
         confirmLabel="永久删除"
       />
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/app/providers/auth-provider";
-import { loadEntries, loadPreferences, loadTemplates, type Template, type Entry } from "@/lib/storage";
+import { loadEntries, loadPreferences, loadTemplates, type Template } from "@/lib/storage";
 import { useAddTemplateMutation, useAddEntryMutation, useUpdateDedicationMutation } from "@/hooks/use-queries";
 
 export default function DataMigrator() {

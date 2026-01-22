@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
   faPenNib,
-  faMagicWandSparkles,
   faCalendarAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import EntryModal from "./components/entry-modal";
@@ -20,7 +19,7 @@ import { sumEntriesForDate } from "@/lib/records";
 import { useSystemData } from "@/hooks/use-system-data";
 import { upsertJournalLog, getJournalLog } from "@/lib/actions/journal";
 
-export default function Home() {
+function HomeContent() {
   const { templates, entries, addEntry } = useSystemData();
   const searchParams = useSearchParams(); // Read URL params
   const dateInputRef = useRef<HTMLInputElement>(null);
@@ -340,5 +339,13 @@ export default function Home() {
         onSave={handleSaveEntry}
       />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

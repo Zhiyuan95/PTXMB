@@ -1,4 +1,4 @@
-import { startOfDay, getDayOfYear } from "date-fns";
+import { getDayOfYear } from "date-fns";
 
 export interface Quote {
   content: string;
@@ -28,10 +28,11 @@ export const TIBETAN_QUOTES: Quote[] = [
     author: "寂天菩萨",
     source: "《入菩萨行论》",
   },
-  
+
   // --- 米拉日巴尊者 (Milarepa) ---
   {
-    content: "如我这般畏惧死亡，以此修心，终证无死本真。此时，死亡于我，已无畏惧。",
+    content:
+      "如我这般畏惧死亡，以此修心，终证无死本真。此时，死亡于我，已无畏惧。",
     author: "米拉日巴尊者",
     source: "《米拉日巴传》",
   },
@@ -52,28 +53,33 @@ export const TIBETAN_QUOTES: Quote[] = [
     author: "顶果钦哲法王",
   },
   {
-    content: "不要认为你的修行是在做一件什么特别的事情。修行就是单纯地安住于当下，无论是散乱还是专注。",
+    content:
+      "不要认为你的修行是在做一件什么特别的事情。修行就是单纯地安住于当下，无论是散乱还是专注。",
     author: "顶果钦哲法王",
   },
   {
-    content: "当我们认出心的本性时，即便生起一千个念头，也只会如水面画图般，即起即灭。",
+    content:
+      "当我们认出心的本性时，即便生起一千个念头，也只会如水面画图般，即起即灭。",
     author: "顶果钦哲法王",
   },
 
   // --- 宗萨蒋扬钦哲仁波切 (Dzongsar Jamyang Khyentse Rinpoche) ---
   {
-    content: "如果你认为你需要某种外在的条件才能快乐，那么你就注定会不快乐。因为外在条件是无常的。",
+    content:
+      "如果你认为你需要某种外在的条件才能快乐，那么你就注定会不快乐。因为外在条件是无常的。",
     author: "宗萨蒋扬钦哲仁波切",
     source: "《正见》",
   },
   {
-    content: "并不是说你不能拥有车子、房子或美好的伴侣，而是你不要被它们所拥有。",
+    content:
+      "并不是说你不能拥有车子、房子或美好的伴侣，而是你不要被它们所拥有。",
     author: "宗萨蒋扬钦哲仁波切",
   },
 
   // --- 索甲仁波切 (Sogyal Rinpoche) ---
   {
-    content: "把心带回家。这即是修行的真谛：释放所有的紧张和执着，回到你本初的觉性。",
+    content:
+      "把心带回家。这即是修行的真谛：释放所有的紧张和执着，回到你本初的觉性。",
     author: "索甲仁波切",
     source: "《西藏生死书》",
   },
@@ -88,15 +94,17 @@ export const TIBETAN_QUOTES: Quote[] = [
     author: "吉美林巴尊者",
     source: "《功德藏》",
   },
-  
+
   // --- 巴珠仁波切 (Patrul Rinpoche) ---
   {
-    content: "现在的你，即是过去的你所造之业的果；未来的你，即是现在的你所造之业的因。",
+    content:
+      "现在的你，即是过去的你所造之业的果；未来的你，即是现在的你所造之业的因。",
     author: "巴珠仁波切",
     source: "《普贤上师言教》",
   },
   {
-    content: "不要去观察别人的过失，而应恒常观察自己的心。修正自己的过失，即便是一刹那，也比观察别人一万年更有意义。",
+    content:
+      "不要去观察别人的过失，而应恒常观察自己的心。修正自己的过失，即便是一刹那，也比观察别人一万年更有意义。",
     author: "巴珠仁波切",
   },
 
@@ -142,13 +150,13 @@ export const TIBETAN_QUOTES: Quote[] = [
   {
     content: "智者不惑，仁者不忧，勇者不惧。",
     author: "孔子",
-    source: "《论语》 (虽非佛教，但在修行中常被引用)", // Added contextual note or verify if user only strictly wants Buddhist. Let's keep strict Buddhist mostly. Remove Confucius if specific. Let's stick to Buddhist.
+    source: "《论语》 (虽非佛教，但在修行中常被引用)",
   },
-   {
+  {
     content: "若见缘起，即见法；若见法，即见佛。",
     author: "释迦牟尼佛",
     source: "《稻秆经》",
-  }
+  },
 ];
 
 /**

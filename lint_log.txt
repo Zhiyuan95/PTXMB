@@ -1,0 +1,138 @@
+
+> ptxmb@0.1.0 lint
+> eslint
+
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\components\data-migrator.tsx
+  5:75  warning  'Entry' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\components\footer.tsx
+  23:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\components\footer.tsx:23:5
+  21 |   useEffect(() => {
+  22 |     // Initial load: Get the daily quote
+> 23 |     setQuote(getDailyQuote());
+     |     ^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |   }, []);
+  25 |
+  26 |   const handleRefresh = () => {  react-hooks/set-state-in-effect
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\page.tsx
+  10:3  warning  'faMagicWandSparkles' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\InsightCard.tsx
+  1:10  warning  'faChartLine' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\PracticeDetailModal.tsx
+  32:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\PracticeDetailModal.tsx:32:7
+  30 |   useEffect(() => {
+  31 |     if (selectedDate) {
+> 32 |       setIsModalOpen(true);
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  33 |     } else {
+  34 |       // Wait for exit animation
+  35 |       const timer = setTimeout(() => setIsModalOpen(false), 300);  react-hooks/set-state-in-effect
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\PracticeReportModal.tsx
+  211:23  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  211:37  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\stats-grid.tsx
+  1:10  warning  'FontAwesomeIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\trend-chart.tsx
+  102:45  warning  'label' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  102:54  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  240:47  error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\trend-chart.tsx:240:47
+  238 |                 tick={{ fill: 'var(--muted)', fontSize: 10, fontWeight: 'bold' }}
+  239 |             />
+> 240 |             <Tooltip cursor={false} content={<CustomTooltip />} />
+      |                                               ^^^^^^^^^^^^^ This component is created during render
+  241 |             <Area
+  242 |               type="monotone"
+  243 |               dataKey="amount"
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\review\components\trend-chart.tsx:102:25
+  100 |
+  101 |   // 3. Custom Tooltip (Detailed)
+> 102 |   const CustomTooltip = ({ active, payload, label }: any) => {
+      |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 103 |     if (active && payload && payload.length) {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 104 |       const data = payload[0].payload;
+      ÔÇª
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 141 |     return null;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 142 |   };
+      | ^^^^ The component is created during render here
+  143 |
+  144 |   // Collapse State
+  145 |   const [isCollapsed, setIsCollapsed] = useState(false);  react-hooks/static-components
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\settings\page.tsx
+   77:7  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\app\settings\page.tsx:77:7
+  75 |
+  76 |     if (isNew === "true") {
+> 77 |       setIsFormOpen(true);
+     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  78 |       if (name) {
+  79 |         setFormData((prev) => ({ ...prev, name: decodeURIComponent(name) }));
+  80 |       }  react-hooks/set-state-in-effect
+  140:9  warning  'today' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\hooks\use-system-data.ts
+  3:10  warning  'useMemo' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\lib\actions\entries.ts
+  6:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\lib\actions\feedback.ts
+  9:49  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\lib\actions\journal.ts
+  13:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\lib\actions\preferences.ts
+  6:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\lib\actions\templates.ts
+   7:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  76:20  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\lib\analytics.ts
+   8:27  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:12  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\zhangzan\Repo\ptxmb\ptxmb\lib\quotes.ts
+  1:10  warning  'startOfDay' is defined but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 23 problems (14 errors, 9 warnings)
+
