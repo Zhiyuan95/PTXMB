@@ -25,7 +25,7 @@ export default function StatsGrid({
   totalDays = 30,
 }: StatsGridProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 stagger">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 stagger">
       <StatCard
         label={`${period}修行天数`}
         value={activeDays}
@@ -53,6 +53,7 @@ export default function StatsGrid({
         iconColorClass="text-[color:var(--accent)]"
         bottomText="勇猛精进"
         bottomColorClass="text-[color:var(--primary)]"
+        className="hidden md:block"
       />
 
       <StatCard
@@ -62,6 +63,7 @@ export default function StatsGrid({
         iconColorClass="text-stone-400"
         bottomText="晚间修行质量最高"
         bottomColorClass="text-[color:var(--accent)]"
+        className="hidden md:block"
       />
     </div>
   );

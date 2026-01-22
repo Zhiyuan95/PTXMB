@@ -10,6 +10,7 @@ interface StatCardProps {
   bottomText?: string;
   bottomIcon?: IconDefinition;
   bottomColorClass?: string;
+  className?: string;
 }
 
 export default function StatCard({
@@ -21,9 +22,10 @@ export default function StatCard({
   bottomText,
   bottomIcon,
   bottomColorClass = "text-[color:var(--muted)]",
+  className = "",
 }: StatCardProps) {
   return (
-    <div className="glass-card p-6 rounded-[2rem] relative overflow-hidden group hover:bg-white/60 transition-all hover:-translate-y-1">
+    <div className={`glass-card p-6 rounded-[2rem] relative overflow-hidden group hover:bg-white/60 transition-all hover:-translate-y-1 ${className}`}>
       {/* Background Icon */}
       <div className="absolute -right-4 -top-4 opacity-5 group-hover:scale-110 transition-transform duration-500">
         <FontAwesomeIcon icon={icon} className={`text-8xl ${iconColorClass}`} />

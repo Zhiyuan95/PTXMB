@@ -125,12 +125,12 @@ export default function PracticeReviewCalendar({
             ))}
             </div>
 
-        <div className="grid grid-cols-7 gap-4">
+        <div className="grid grid-cols-7 gap-2 sm:gap-3 md:gap-4">
           {/* Padding Days */}
           {Array.from({ length: paddingFront }).map((_, i) => (
             <div
               key={`pad-${i}`}
-              className="h-24 glass-card bg-black/5 border-none rounded-2xl p-2 opacity-20"
+              className="h-14 sm:h-20 md:h-24 glass-card bg-black/5 border-none rounded-2xl p-2 opacity-20"
             />
           ))}
 
@@ -146,28 +146,29 @@ export default function PracticeReviewCalendar({
               <div
                 key={day.toISOString()}
                 onClick={() => setSelectedDate(day)}
-                className={`h-24 rounded-2xl p-2 flex flex-col justify-between transition-all cursor-pointer relative group overflow-hidden ${
+                className={`h-14 sm:h-20 md:h-24 rounded-2xl p-2 flex flex-col justify-between transition-all cursor-pointer relative group overflow-hidden ${
                   hasEntry
                     ? "glass-card border-2 border-[color:var(--primary)]/40 bg-[color:var(--surface)] hover:scale-[1.02] hover:shadow-lg"
                     : "glass-card border border-[color:var(--line)] hover:bg-white/60 hover:border-[color:var(--primary)]/20"
                 } ${isCurrentDay ? "ring-2 ring-[color:var(--primary)]" : ""} ${isSelected ? "ring-4 ring-[color:var(--accent)]/50 scale-[0.98]" : ""}`}
               >
+                {/* Today's background highlight */}
+                {isCurrentDay && (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--primary)]/20 to-[color:var(--accent)]/10 rounded-2xl -z-10"></div>
+                )}
+
                 <div className="flex justify-between items-start z-10">
                   <span
                     className={`text-xs font-bold ${
-                      hasEntry
+                      isCurrentDay
                         ? "text-[color:var(--primary)]"
-                        : "text-[color:var(--muted)]"
+                        : hasEntry
+                          ? "text-[color:var(--primary)]"
+                          : "text-[color:var(--muted)]"
                     }`}
                   >
                     {format(day, "d")}
                   </span>
-                  {isCurrentDay && (
-                    <span
-                      className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"
-                      title="Today"
-                    ></span>
-                  )}
                 </div>
 
                 {/* Dots visualization */}

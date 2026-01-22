@@ -373,7 +373,7 @@ function SettingsContent() {
 
         <section className="mt-20">
           <h4 className="font-display text-2xl font-bold mb-8 text-[color:var(--ink)]">
-            常用模板 (快速添加)
+            常用模板 (快速添加) 正在制作中...
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
