@@ -7,6 +7,19 @@ import DataMigrator from "./components/data-migrator";
 export const metadata: Metadata = {
   title: "菩提心妙宝",
   description: "极简功课记录与复盘的数字化账本。",
+  manifest: "/manifest.json",
+  themeColor: "#b45309",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "菩提心妙宝",
+  },
 };
 
 export default function RootLayout({
@@ -16,6 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+      </head>
       <body className="antialiased">
         <QueryProvider>
           <AuthProvider>
