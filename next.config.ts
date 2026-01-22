@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
-import withPWA from "next-pwa";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default withPWA({
+const withPWA = require("next-pwa")({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
-})(nextConfig);
+});
+
+const nextConfig: NextConfig = {
+  turbopack: {}, // Allow webpack-based plugins like next-pwa
+};
+
+export default withPWA(nextConfig);
