@@ -8,6 +8,14 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   turbopack: {}, // Required for Next.js 16 + Webpack plugins
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/quote',
+        destination: 'https://tibetan-quotes.vercel.app/api/v1/sentence',
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);

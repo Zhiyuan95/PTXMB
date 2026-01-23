@@ -1,10 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDailyQuote, getRandomQuote, type Quote } from "@/lib/quotes";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSyncAlt } from "@fortawesome/free-solid-svg-icons";
+import { faChevronLeft, faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
+
+interface Quote {
+  content: string;
+  author: string;
+  source?: string;
+}
+
+interface HitokotoQuote {
+  hitokoto: string;
+  from_who: string;
+  from: string;
+}
 
 export interface FooterProps {
   title?: string;
@@ -15,24 +26,65 @@ export default function Footer({
   title = "Witnessing Growth",
   className = "",
 }: FooterProps) {
-  const [quote, setQuote] = useState<Quote | null>(null);
-  const [isRotating, setIsRotating] = useState(false);
+  const [quoteHistory, setQuoteHistory] = useState<Quote[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  useEffect(() => {
-    // Initial load: Get the daily quote
-    setQuote(getDailyQuote());
-  }, []);
-
-  const handleRefresh = () => {
-    setIsRotating(true);
-    // Add a small delay for visual feedback of rotation
-    setTimeout(() => {
-      setQuote(getRandomQuote());
-      setIsRotating(false);
-    }, 500);
+  const fetchNewQuote = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/proxy/quote");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data: HitokotoQuote = await res.json();
+      const newQuote: Quote = {
+        content: data.hitokoto,
+        author: "度母之子",
+        source: data.from,
+      };
+      
+      setQuoteHistory(prev => [...prev, newQuote]);
+      setCurrentIndex(prev => prev + 1);
+    } catch (error) {
+      console.error("Error fetching quote:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (!quote) return null; // Or a skeleton
+  useEffect(() => {
+    if (quoteHistory.length === 0) {
+      fetchNewQuote();
+    }
+  }, []);
+
+  // Reset expansion when index changes
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [currentIndex]);
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentIndex < quoteHistory.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+    } else {
+      fetchNewQuote();
+    }
+  };
+
+  const currentQuote = quoteHistory[currentIndex];
+
+  if (!currentQuote) return null;
+
+  const isLongQuote = currentQuote.content.length > 80;
+  const displayContent = isExpanded || !isLongQuote 
+    ? currentQuote.content 
+    : `${currentQuote.content.slice(0, 80)}...`;
 
   return (
     <footer className={`glass-card p-10 rounded-3xl text-center group relative ${className}`}>
@@ -46,21 +98,50 @@ export default function Footer({
             意见反馈
         </Link>
       </h4>
-      <div className="relative max-w-3xl mx-auto">
-        <p className="font-display text-2xl md:text-3xl text-[color:var(--ink)]/80 italic mb-4 leading-relaxed animate-fade-in key={quote.content}">
-          “{quote.content}”
-        </p>
-        <p className="text-sm text-[color:var(--muted)] font-serif mt-4 animate-fade-in key={quote.author}">
-           — {quote.author} {quote.source && <span className="opacity-70">· {quote.source}</span>}
-        </p>
-
-        {/* Refresh Action (Visible on Hover) */}
+      
+      <div className="relative max-w-3xl mx-auto flex items-start justify-between gap-4">
+        {/* Previous Button */}
         <button 
-          onClick={handleRefresh}
-          className="absolute -right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-2 text-[color:var(--muted)] hover:text-[color:var(--primary)]"
-          title="换一句"
+          onClick={handlePrev}
+          disabled={currentIndex <= 0}
+          className={`p-2 mt-4 transition-all ${
+            currentIndex <= 0 
+              ? "opacity-0 cursor-default" 
+              : "opacity-40 hover:opacity-100 hover:text-[color:var(--primary)] text-[color:var(--muted)]"
+          }`}
+          title="上一句"
         >
-          <FontAwesomeIcon icon={faSyncAlt} className={`${isRotating ? "animate-spin" : ""}`} />
+          <FontAwesomeIcon icon={faChevronLeft} className="w-5 h-5" />
+        </button>
+
+        {/* Quote Content */}
+        <div className="flex-1 min-h-[120px] flex flex-col justify-center ">
+          <p className="text-left font-display text-2xl md:text-3xl text-[color:var(--ink)]/80 italic mb-4 leading-relaxed animate-fade-in key={currentQuote.content}">
+            “{displayContent}”
+          </p>
+          
+          {isLongQuote && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-[color:var(--primary)] font-bold uppercase tracking-wider hover:opacity-80 transition-opacity mb-2 self-start"
+            >
+              {isExpanded ? "收起" : "展开全文"}
+            </button>
+          )}
+
+          <p className="text-right text-sm text-[color:var(--muted)] font-serif mt-2 animate-fade-in key={currentQuote.author}">
+             — {currentQuote.author} {currentQuote.source && <span className="opacity-70">· {currentQuote.source}</span>}
+          </p>
+        </div>
+
+        {/* Next Button */}
+        <button 
+          onClick={handleNext}
+          disabled={isLoading}
+          className={`p-2 mt-4 transition-all opacity-40 hover:opacity-100 hover:text-[color:var(--primary)] text-[color:var(--muted)]`}
+          title="下一句"
+        >
+           <FontAwesomeIcon icon={faChevronRight} className={`w-5 h-5 ${isLoading ? "animate-pulse" : ""}`} />
         </button>
       </div>
     </footer>
