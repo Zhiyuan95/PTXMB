@@ -30,6 +30,18 @@ export default function Footer({
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const fetchNewQuote = async () => {
     setIsLoading(true);
@@ -81,10 +93,11 @@ export default function Footer({
 
   if (!currentQuote) return null;
 
-  const isLongQuote = currentQuote.content.length > 80;
+  const maxLength = isMobile ? 20 : 80;
+  const isLongQuote = currentQuote.content.length > maxLength;
   const displayContent = isExpanded || !isLongQuote 
     ? currentQuote.content 
-    : `${currentQuote.content.slice(0, 80)}...`;
+    : `${currentQuote.content.slice(0, maxLength)}...`;
 
   return (
     <footer className={`glass-card p-10 rounded-3xl text-center group relative ${className}`}>
