@@ -116,7 +116,7 @@ export default function Footer({
 
         {/* Quote Content */}
         <div className="flex-1 min-h-[120px] flex flex-col justify-center ">
-          <p className="text-left font-display text-2xl md:text-3xl text-[color:var(--ink)]/80 italic mb-4 leading-relaxed animate-fade-in key={currentQuote.content}">
+          <p className="text-left font-display text-md md:text-3xl text-[color:var(--ink)]/80 italic mb-4 leading-relaxed animate-fade-in key={currentQuote.content}">
             “{displayContent}”
           </p>
           
